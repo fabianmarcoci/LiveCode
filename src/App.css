@@ -1,0 +1,51 @@
+:root {
+  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+
+  color: #FF7A2F;
+  background-color: #181818;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+main {
+  margin: 0;
+  padding: 0;
+}
+
+#root {
+  width: 100vw;
+  height: 100vh;
+}
+
+.titlebar {
+  height: 40px;
+  width: 100%;
+  background-color: #181818;
+  color: #FF7A2F;
+  display: flex;
+  align-items: center;
+  padding-left: 8px;
+  font-size: 14px;
+  border-bottom: 1px solid #2A2A2A;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-app-region: drag;
+}
+
+.titlebar-icon {
+  width: 24px;
+  height: 24px;
+}
