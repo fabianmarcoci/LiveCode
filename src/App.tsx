@@ -1,5 +1,5 @@
 import "./App.css";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 
 const appWindow = getCurrentWindow();
@@ -10,6 +10,8 @@ function App() {
   const [showHiddenFiles, setShowHiddenFiles] = useState(false);
   const [showOptionsMenu, setShowOptionsMenu] = useState(false);
   const [lightMode, setLightMode] = useState(false);
+  const viewRef = useRef<HTMLDivElement | null>(null);
+  const optionsRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const appWindow = getCurrentWindow();
@@ -38,6 +40,32 @@ function App() {
     }
   }, [lightMode]);
 
+useEffect(() => {
+  function handleClickOutside(e: MouseEvent) {
+    const target = e.target as Node;
+
+    const insideView = viewRef.current?.contains(target);
+    const insideOptions = optionsRef.current?.contains(target);
+
+    const clickedMenuButton = (target as HTMLElement).closest(".menu-btn");
+
+    // dacă e în dropdown sau pe un buton View/Options → NU închidem
+    if (insideView || insideOptions || clickedMenuButton) {
+      return;
+    }
+
+    // altfel → închidem meniurile
+    setShowViewMenu(false);
+    setShowOptionsMenu(false);
+  }
+
+  window.addEventListener("click", handleClickOutside);
+
+  return () => window.removeEventListener("click", handleClickOutside);
+}, []);
+
+
+
   return (
     <>
       <div className="titlebar" data-tauri-drag-region>
@@ -61,7 +89,7 @@ function App() {
               </button>
 
               {showViewMenu && (
-                <div className="menu-dropdown">
+                <div className="menu-dropdown" ref={viewRef}>
                   <div
                     className="menu-item"
                     onClick={() => setShowHiddenFiles(!showHiddenFiles)}
@@ -92,7 +120,7 @@ function App() {
               </button>
 
               {showOptionsMenu && (
-                <div className="menu-dropdown">
+                <div className="menu-dropdown" ref={optionsRef}>
                   <div
                     className="menu-item"
                     onClick={() => setLightMode(!lightMode)}
