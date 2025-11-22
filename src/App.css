@@ -42,10 +42,40 @@ main {
   border-bottom: 1px solid #2A2A2A;
   -webkit-user-select: none;
   user-select: none;
+  justify-content: space-between;
   -webkit-app-region: drag;
 }
 
 .titlebar-icon {
   width: 24px;
   height: 24px;
+}
+
+.titlebar-buttons {
+  display: flex;
+  margin-right: 8px;
+  -webkit-app-region: no-drag;
+}
+
+.titlebar-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.titlebar-btn:hover {
+  height: 40px;
+  background: #333;
+}
+
+.close-btn:hover {
+  background: #b50c1a;
+  color: white;
 }

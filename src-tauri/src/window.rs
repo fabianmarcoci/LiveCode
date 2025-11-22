@@ -1,4 +1,4 @@
-use tauri::{App, PhysicalSize, Size, Manager};
+use tauri::{App, Manager, PhysicalSize, Size};
 
 pub fn adjust_window_size(app: &App) {
     let monitor = match app.primary_monitor().unwrap() {
