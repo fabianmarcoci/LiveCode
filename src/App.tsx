@@ -49,12 +49,10 @@ useEffect(() => {
 
     const clickedMenuButton = (target as HTMLElement).closest(".menu-btn");
 
-    // dacă e în dropdown sau pe un buton View/Options → NU închidem
     if (insideView || insideOptions || clickedMenuButton) {
       return;
     }
 
-    // altfel → închidem meniurile
     setShowViewMenu(false);
     setShowOptionsMenu(false);
   }
