@@ -10,7 +10,7 @@
   -webkit-text-size-adjust: 100%;
 
   --bg: #181818;
-  --titlebar-bg: #181818;
+  --titlebar-bg: #1F1F1F;
   --titlebar-text: #FF7A2F;
   --border: #2A2A2A;
 
@@ -30,6 +30,13 @@
   --close-btn-hover: #b50c1a;
 
   --window-btn-text: white;
+
+  --error-text: #ff6b6b;
+  --error-border: #ff4d4d;
+
+  --pw-weak: #d9534f;
+  --pw-medium: #f0ad4e;
+  --pw-strong: #5cb85c;
 }
 
 body.light {
@@ -54,6 +61,13 @@ body.light {
   --window-btn-text: #3A2F45;
   --window-btn-hover: #E6D4FA;
   --close-btn-hover: #c0392b;
+
+  --error-text: #c0392b;
+  --error-border: #e74c3c;
+
+  --pw-weak: #e74c3c;
+  --pw-medium: #d35400;
+  --pw-strong: #27ae60;
 }
 
 
@@ -190,6 +204,31 @@ main {
   flex: 1;
 }
 
+.signin-btn {
+  background: var(--titlebar-bg);
+  color: var(--titlebar-text);
+  border: 2px solid var(--menu-btn-active);
+  padding: 6px 28px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+  transition: 0.2s ease;
+
+  transform: skewX(-20deg);
+}
+.signin-btn span {
+  display: inline-block;
+  transform: skewX(20deg);
+}
+
+
+.signin-btn:hover {
+  background: var(--menu-btn-hover);
+}
+
+
 .titlebar-buttons {
   display: flex;
   margin-right: 8px;
@@ -217,4 +256,279 @@ main {
 .close-btn:hover {
   background: var(--close-btn-hover);
   color: white;
+}
+
+.auth-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.auth-dropdown {
+  position: absolute;
+  top: 34px;
+  left: 50%;
+  transform: translateX(-50%);
+
+  background: var(--titlebar-bg);
+  border: 2px solid var(--menu-btn-active);
+  padding: 10px;
+  border-radius: 8px;
+
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  z-index: 999;
+  -webkit-app-region: no-drag;
+}
+
+.auth-item {
+  background: var(--titlebar-bg);
+  border: 1px solid var(--menu-btn-active);
+  border-radius: 6px;
+
+  padding: 10px 18px;
+  text-align: center;
+
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--menu-btn-text);
+
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.auth-item:hover {
+  background: var(--menu-btn-hover);
+}
+
+.auth-panel {
+  position: fixed;
+  top: 40px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+
+  z-index: 800;
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-panel-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 16px 16px;
+  gap: 8px;
+}
+
+.auth-panel-close {
+  border: 1px solid var(--border);
+  background: var(--titlebar-bg);
+  color: var(--titlebar-text);
+
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+
+  -webkit-app-region: no-drag;
+}
+
+.auth-panel-close:hover {
+  background: var(--menu-btn-hover);
+  color: var(--titlebar-text);
+}
+
+.auth-panel-body {
+  padding: 16px;
+  flex: 1;
+  overflow: auto;
+
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 420px;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.input-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--titlebar-text);
+}
+
+.input-field {
+  padding: 10px 12px;
+  font-size: 14px;
+  border-radius: 6px;
+  background: var(--dropdown-bg);
+  color: var(--dropdown-text);
+  border: 1px solid var(--dropdown-border);
+  outline: none;
+  transition: 0.15s ease;
+}
+
+.input-field:hover {
+  background: var(--dropdown-hover);
+}
+
+.input-field:focus {
+  border-color: var(--menu-btn-active);
+  background: var(--dropdown-hover);
+}
+
+.error-text {
+  color: var(--error-text);
+  font-size: 13px;
+  margin-top: -6px;
+  margin-bottom: 0px;
+  line-height: 1.2;
+  opacity: 0.9;
+}
+
+.password-strength {
+  font-size: 13px;
+  margin-top: -6px;
+  margin-bottom: 0px;
+}
+
+.password-strength.weak {
+  color: var(--pw-weak);
+}
+
+.password-strength.medium {
+  color: var(--pw-medium);
+}
+
+.password-strength.strong {
+  color: var(--pw-strong);
+}
+
+
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+
+input[type="password"]::-webkit-credentials-auto-fill-button {
+  visibility: hidden;
+  display: none !important;
+  opacity: 0;
+}
+
+.input-with-icon {
+  position: relative;
+  width: 100%; 
+  display: block;
+}
+
+.input-with-icon .input-field {
+  width: 100% !important;
+  box-sizing: border-box;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  cursor: pointer;
+  user-select: none;
+  font-size: 18px;
+  opacity: 0.7;
+  z-index: 2;
+}
+
+.password-toggle:hover {
+  opacity: 1;
+}
+
+@keyframes shake {
+  0% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+  100% { transform: translateX(0); }
+}
+
+.input-shake {
+  animation: shake 0.25s ease-in-out;
+}
+
+.input-error {
+  border: 2px solid var(--error-border) !important;
+}
+
+.temp-message {
+  color: var(--error-text);
+  font-size: 13px;
+  margin-top: -6px;
+  margin-bottom: 0px;
+  opacity: 0.9;
+}
+
+.auth-submit {
+  width: 100%;
+  margin-top: 20px;
+
+  padding: 12px 0;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 8px;
+
+  background: var(--menu-btn-active);
+  color: var(--menu-btn-text);
+  border: 1px solid var(--dropdown-border);
+
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.auth-submit:hover {
+  background: var(--menu-btn-hover);
+}
+
+.auth-submit:disabled {
+  background: var(--dropdown-bg);
+  color: var(--dropdown-text);
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--menu-btn-text);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.success-text {
+  color: var(--pw-strong);
+  font-size: 14px;
+  margin-top: 10px;
+  text-align: center;
 }

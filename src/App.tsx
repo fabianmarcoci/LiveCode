@@ -1,6 +1,7 @@
 import "./App.css";
 import { useEffect, useState, useRef } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import RegisterForm from "./components/auth/RegisterForm";
 
 const appWindow = getCurrentWindow();
 
@@ -10,9 +11,15 @@ function App() {
   const [showHiddenFiles, setShowHiddenFiles] = useState(false);
   const [showOptionsMenu, setShowOptionsMenu] = useState(false);
   const [lightMode, setLightMode] = useState(false);
+  const [showAuthMenu, setShowAuthMenu] = useState(false);
+  const [authPanelType, setAuthPanelType] = useState<
+    "register" | "login" | null
+  >(null);
+
   const viewRef = useRef<HTMLDivElement | null>(null);
   const optionsRef = useRef<HTMLDivElement | null>(null);
-
+  const authRef = useRef<HTMLDivElement | null>(null);
+  // Maximize button
   useEffect(() => {
     const appWindow = getCurrentWindow();
 
@@ -32,6 +39,7 @@ function App() {
     };
   }, []);
 
+  // Light mode
   useEffect(() => {
     if (lightMode) {
       document.body.classList.add("light");
@@ -40,29 +48,46 @@ function App() {
     }
   }, [lightMode]);
 
-useEffect(() => {
-  function handleClickOutside(e: MouseEvent) {
-    const target = e.target as Node;
+  // Click outside dropdowns
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      const target = e.target as Node;
 
-    const insideView = viewRef.current?.contains(target);
-    const insideOptions = optionsRef.current?.contains(target);
+      const insideView = viewRef.current?.contains(target);
+      const insideOptions = optionsRef.current?.contains(target);
+      const insideAuth = authRef.current?.contains(target);
 
-    const clickedMenuButton = (target as HTMLElement).closest(".menu-btn");
+      const clickedMenuButton = (target as HTMLElement).closest(
+        ".menu-btn, .auth-btn"
+      );
 
-    if (insideView || insideOptions || clickedMenuButton) {
-      return;
+      if (insideView || insideOptions || insideAuth || clickedMenuButton) {
+        return;
+      }
+
+      setShowViewMenu(false);
+      setShowOptionsMenu(false);
+      setShowAuthMenu(false);
     }
 
-    setShowViewMenu(false);
-    setShowOptionsMenu(false);
-  }
+    window.addEventListener("click", handleClickOutside);
 
-  window.addEventListener("click", handleClickOutside);
+    return () => window.removeEventListener("click", handleClickOutside);
+  }, []);
 
-  return () => window.removeEventListener("click", handleClickOutside);
-}, []);
+  // Register / Login panels
+  useEffect(() => {
+    if (!authPanelType) return;
 
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        setAuthPanelType(null);
+      }
+    }
 
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [authPanelType]);
 
   return (
     <>
@@ -80,6 +105,7 @@ useEffect(() => {
                 className={`menu-btn ${showViewMenu ? "active" : ""}`}
                 onClick={() => {
                   setShowOptionsMenu(false);
+                  setShowAuthMenu(false);
                   setShowViewMenu((prev) => !prev);
                 }}
               >
@@ -111,6 +137,7 @@ useEffect(() => {
                 className={`menu-btn ${showOptionsMenu ? "active" : ""}`}
                 onClick={() => {
                   setShowViewMenu(false);
+                  setShowAuthMenu(false);
                   setShowOptionsMenu((prev) => !prev);
                 }}
               >
@@ -134,6 +161,45 @@ useEffect(() => {
                 </div>
               )}
             </div>
+          </div>
+        </div>
+
+        <div className="titlebar-center" data-tauri-drag-region={false}>
+          <div className="auth-wrapper">
+            <button
+              className={`signin-btn auth-btn ${showAuthMenu ? "active" : ""}`}
+              onClick={() => {
+                setShowViewMenu(false);
+                setShowOptionsMenu(false);
+                setShowAuthMenu((prev) => !prev);
+              }}
+            >
+              Sign In
+            </button>
+
+            {showAuthMenu && (
+              <div className="auth-dropdown" ref={authRef}>
+                <button
+                  className="auth-item auth-register"
+                  onClick={() => {
+                    setShowAuthMenu(false);
+                    setAuthPanelType("register");
+                  }}
+                >
+                  Register
+                </button>
+
+                <button
+                  className="auth-item auth-login"
+                  onClick={() => {
+                    setShowAuthMenu(false);
+                    setAuthPanelType("login");
+                  }}
+                >
+                  Log In
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -165,6 +231,27 @@ useEffect(() => {
           </button>
         </div>
       </div>
+
+      {authPanelType && (
+        <div className="auth-panel">
+          <div className="auth-panel-header">
+            <button
+              className="auth-panel-close"
+              onClick={() => {
+                setAuthPanelType(null);
+              }}
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="auth-panel-body">
+            {authPanelType === "register" && (
+              <RegisterForm onClose={() => setAuthPanelType(null)} />
+            )}
+          </div>
+        </div>
+      )}
 
       <main className="container"></main>
     </>
