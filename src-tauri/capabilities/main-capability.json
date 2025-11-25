@@ -12,6 +12,6 @@
     "core:window:allow-set-size",
     "core:window:allow-maximize",
     "core:window:allow-unmaximize",
-    "core:event:allow-listen"
+    "core:event:allow-listen" 
   ]
 }

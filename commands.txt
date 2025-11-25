@@ -1,0 +1,2 @@
+// Create revertable migrations
+sqlx migrate add -r name_of_migration
