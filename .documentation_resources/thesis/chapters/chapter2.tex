@@ -1,0 +1,339 @@
+\chapter{Tehnologii și Arhitectură}
+
+\section{Stack-ul tehnologic}
+
+Alegerea tehnologiilor pentru platforma LiveCode a fost ghidată de criteriile de performanță, securitate, portabilitate și mentenabilitate pe termen lung. Stack-ul final combină tehnologii moderne și mature, fiecare aleasă pentru avantajele specifice pe care le oferă.
+
+\subsection{Tauri v2 - Framework pentru aplicații desktop}
+
+\subsubsection{Motivația alegerii}
+
+Tauri reprezintă o alternativă modernă la framework-uri tradiționale precum Electron, oferind avantaje semnificative:
+
+\begin{itemize}
+    \item \textbf{Dimensiune redusă} - Aplicațiile Tauri au dimensiuni de 3-10 MB comparativ cu 100+ MB pentru Electron
+    \item \textbf{Consum redus de resurse} - Utilizează browser-ul nativ al sistemului în loc să împacheteze Chromium
+    \item \textbf{Securitate sporită} - Izolarea strictă între frontend și backend, comunicare prin IPC securizat
+    \item \textbf{Performanță nativă} - Backend scris în Rust cu performanță apropiată de cod nativ C/C++
+\end{itemize}
+
+\subsubsection{Arhitectura Tauri}
+
+Tauri folosește o arhitectură în două procese:
+
+\begin{enumerate}
+    \item \textbf{Core Process} (Rust) - Rulează logica de business, gestionează fișierele, conexiunile și baza de date
+    \item \textbf{WebView Process} - Renderizează interfața folosind browser-ul nativ al sistemului
+\end{enumerate}
+
+Comunicarea între cele două procese se realizează prin:
+\begin{itemize}
+    \item \textbf{Commands} - Funcții Rust expuse către frontend prin macro-uri
+    \item \textbf{Events} - Sistem pub/sub pentru notificări asincrone
+    \item \textbf{State Management} - Partajarea stării între command-uri
+\end{itemize}
+
+\subsection{React 19 - Frontend framework}
+
+\subsubsection{Alegerea React}
+
+React a fost ales pentru frontend datorită:
+
+\begin{itemize}
+    \item \textbf{Ecosistem matur} - Abundența de biblioteci și componente reutilizabile
+    \item \textbf{Virtual DOM} - Performanță excelentă pentru UI-uri complexe
+    \item \textbf{Component-based} - Modularitate și reutilizare
+    \item \textbf{Developer experience} - Hot reload, debugging tools, type safety cu TypeScript
+\end{itemize}
+
+\subsubsection{Arhitectura frontend}
+
+Structura proiectului React:
+
+\begin{lstlisting}[language=bash, caption=Structura directoarelor frontend]
+src/
+├── components/           # Componente reutilizabile
+│   ├── common/          # Butoane, inputs, modals
+│   ├── layout/          # Sidebar, header, footer
+│   └── features/        # File browser, connection manager
+├── hooks/               # Custom React hooks
+├── services/            # API calls către Tauri backend
+├── store/               # State management (Redux/Zustand)
+├── types/               # TypeScript type definitions
+└── utils/               # Helper functions
+\end{lstlisting}
+
+\subsection{Rust - Backend și logică de business}
+
+\subsubsection{De ce Rust?}
+
+Rust oferă avantaje unice pentru backend-ul unei aplicații desktop:
+
+\begin{itemize}
+    \item \textbf{Memory safety} - Elimină buffer overflows și data races la compile time
+    \item \textbf{Zero-cost abstractions} - Performanță comparabilă cu C/C++ fără sacrificarea expresivității
+    \item \textbf{Concurrency} - Model de ownership care previne race conditions
+    \item \textbf{Rich ecosystem} - Crate-uri mature pentru SSH (ssh2), async (tokio), serialization (serde)
+\end{itemize}
+
+\subsubsection{Componente Rust în LiveCode}
+
+\begin{lstlisting}[language=Rust, caption=Structura backend Rust]
+src-tauri/
+├── main.rs                 # Entry point
+├── lib.rs                  # Library exports
+├── auth/
+│   ├── mod.rs
+│   ├── session.rs          # Session management
+│   └── credentials.rs      # Password hashing, encryption
+├── ssh/
+│   ├── mod.rs
+│   ├── connection.rs       # SSH connection pooling
+│   ├── sftp.rs            # SFTP operations
+│   └── file_lock.rs       # Distributed file locking
+├── db/
+│   ├── mod.rs
+│   ├── pool.rs            # Database connection pool
+│   ├── migrations/        # SQLx migrations
+│   └── models/            # Database models
+└── commands/              # Tauri commands
+    ├── auth.rs
+    ├── connections.rs
+    └── files.rs
+\end{lstlisting}
+
+\subsection{PostgreSQL - Persistența datelor}
+
+\subsubsection{Alegerea PostgreSQL}
+
+PostgreSQL a fost preferat altor soluții datorită:
+
+\begin{itemize}
+    \item \textbf{Robustețe} - ACID compliance, transacții, foreign keys
+    \item \textbf{JSON support} - Stocare eficientă a configurațiilor complexe
+    \item \textbf{Full-text search} - Pentru căutare rapidă în conexiuni și proiecte
+    \item \textbf{Extensibilitate} - Suport pentru funcții custom, triggers
+\end{itemize}
+
+\subsubsection{Schema bazei de date}
+
+Schema inițială include următoarele tabele principale:
+
+\begin{lstlisting}[language=SQL, caption=Schema principală a bazei de date]
+-- Utilizatori
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Sesiuni
+CREATE TABLE sessions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    token_hash VARCHAR(255) NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Proiecte (grupare conexiuni)
+CREATE TABLE projects (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Conexiuni SSH/SFTP
+CREATE TABLE connections (
+    id SERIAL PRIMARY KEY,
+    project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    host VARCHAR(255) NOT NULL,
+    port INTEGER DEFAULT 22,
+    username VARCHAR(255) NOT NULL,
+    auth_type VARCHAR(50) NOT NULL, -- 'password' sau 'key'
+    encrypted_credentials TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- File locks (pentru colaborare)
+CREATE TABLE file_locks (
+    id SERIAL PRIMARY KEY,
+    connection_id INTEGER REFERENCES connections(id) ON DELETE CASCADE,
+    file_path TEXT NOT NULL,
+    locked_by INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    locked_at TIMESTAMP DEFAULT NOW(),
+    expires_at TIMESTAMP NOT NULL,
+    UNIQUE(connection_id, file_path)
+);
+\end{lstlisting}
+
+\section{Arhitectura generală}
+
+\subsection{Viziune de ansamblu}
+
+Arhitectura LiveCode este organizată în straturi (layers), fiecare cu responsabilități clare:
+
+\begin{enumerate}
+    \item \textbf{Presentation Layer} (React) - UI components, state management
+    \item \textbf{Application Layer} (Tauri Commands) - Orchestrare business logic
+    \item \textbf{Domain Layer} (Rust services) - Logică de business, reguli
+    \item \textbf{Infrastructure Layer} (SSH, Database) - Acces la resurse externe
+\end{enumerate}
+
+\subsection{Fluxul de date}
+
+% TODO: Adaugă diagramă arhitectură când proiectul avansează
+
+Un exemplu de flux tipic - descărcarea unui fișier:
+
+\begin{enumerate}
+    \item Utilizatorul face click pe "Download" în UI (React)
+    \item React component invocă \texttt{downloadFile()} din service layer
+    \item Service layer apelează Tauri command \texttt{download\_file}
+    \item Command Rust:
+        \begin{itemize}
+            \item Verifică dacă fișierul este blocat de alt utilizator
+            \item Dacă nu, creează un file lock pentru utilizatorul curent
+            \item Deschide conexiune SFTP (din pool sau nouă)
+            \item Descarcă fișierul chunk by chunk
+            \item Emite progress events către frontend
+            \item La finalizare, eliberează lock-ul
+        \end{itemize}
+    \item Frontend primește events și actualizează progress bar
+    \item La finalizare, fișierul este salvat local și lock-ul este eliberat
+\end{enumerate}
+
+\subsection{Gestionarea stării}
+
+% Secțiune în curs de dezvoltare - va fi completată odată cu implementarea
+
+\textit{Această secțiune va detalia:}
+\begin{itemize}
+    \item State management în React (Redux/Zustand)
+    \item Sincronizarea stării între tabs
+    \item Persistența stării în localStorage
+    \item Reconcilierea stării după reconectare
+\end{itemize}
+
+\subsection{Securitatea arhitecturii}
+
+\subsubsection{Principii de securitate}
+
+\begin{itemize}
+    \item \textbf{Least Privilege} - Fiecare componentă are doar permisiunile necesare
+    \item \textbf{Defense in Depth} - Multiple straturi de securitate
+    \item \textbf{Fail Securely} - În caz de eroare, sistemul rămâne în stare sigură
+\end{itemize}
+
+\subsubsection{Măsuri de securitate implementate}
+
+\begin{enumerate}
+    \item \textbf{Criptarea datelor sensibile}
+        \begin{itemize}
+            \item Parolele sunt hash-ate cu bcrypt (cost factor 12)
+            \item Credențialele SSH sunt criptate cu AES-256-GCM
+            \item Cheile de criptare sunt derivate din master key + user salt
+        \end{itemize}
+
+    \item \textbf{Validarea input-urilor}
+        \begin{itemize}
+            \item Validare pe frontend (UX)
+            \item Validare strictă pe backend (securitate)
+            \item Sanitizare pentru prevenirea injecțiilor
+        \end{itemize}
+
+    \item \textbf{Izolarea proceselor}
+        \begin{itemize}
+            \item Frontend nu are acces direct la filesystem sau rețea
+            \item Toate operațiunile critice trec prin backend Rust
+            \item IPC (Inter-Process Communication) este whitelist-based
+        \end{itemize}
+\end{enumerate}
+
+\section{Decizii arhitecturale majore}
+
+\subsection{De ce nu Electron?}
+
+Deși Electron este mai popular, Tauri a fost preferat pentru:
+
+\begin{table}[h]
+\centering
+\caption{Tauri vs Electron}
+\begin{tabular}{|l|c|c|}
+\hline
+\textbf{Criteriu} & \textbf{Electron} & \textbf{Tauri} \\
+\hline
+Dimensiune binară & 120+ MB & 5-10 MB \\
+\hline
+RAM în idle & 150-300 MB & 30-60 MB \\
+\hline
+Timp pornire & 2-5 sec & <1 sec \\
+\hline
+Securitate & Mediu & Ridicată \\
+\hline
+Performanță backend & Medium (Node.js) & Nativă (Rust) \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{SQLx vs Diesel vs SeaORM}
+
+Pentru interacțiunea cu PostgreSQL, s-a ales SQLx datorită:
+
+\begin{itemize}
+    \item \textbf{Compile-time verification} - Query-urile SQL sunt verificate la compilare
+    \item \textbf{Async/await native} - Integrare perfectă cu Tokio
+    \item \textbf{Flexibilitate} - SQL raw pentru query-uri complexe
+    \item \textbf{Migrations} - Sistem integrat de migrări
+\end{itemize}
+
+\subsection{Strategia de file locking}
+
+% Secțiune în curs de implementare
+
+\textit{Această secțiune va descrie:}
+\begin{itemize}
+    \item Implementarea distribuită a lock-urilor
+    \item Timeout mechanisms
+    \item Heartbeat pentru detectarea utilizatorilor offline
+    \item Reconciliation în caz de conflicte
+\end{itemize}
+
+\section{Scalabilitate și performanță}
+
+\subsection{Connection pooling}
+
+Pentru gestionarea eficientă a conexiunilor SSH:
+
+\begin{itemize}
+    \item Pool de conexiuni refolosibile
+    \item Timeout și reconnect automat
+    \item Keep-alive pentru conexiuni idle
+    \item Limit pe numărul de conexiuni simultane
+\end{itemize}
+
+\subsection{Caching}
+
+% Va fi implementat în etapele următoare
+
+\textit{Strategii de caching planificate:}
+\begin{itemize}
+    \item Cache pentru listările de directoare
+    \item Invalidare inteligentă la modificări
+    \item LRU cache pentru file metadata
+\end{itemize}
+
+\section{Concluzii}
+
+Stack-ul tehnologic ales - Tauri, React, Rust și PostgreSQL - oferă o fundație solidă pentru construirea unei platforme moderne, performante și securizate. Deciziile arhitecturale au fost ghidate de principii de modularitate, securitate și mentenabilitate, pregătind terenul pentru o implementare robustă.
+
+Capitolul următor va detalia procesul de implementare efectivă a funcționalităților cheie.
+
+\newpage

@@ -1,11 +1,17 @@
 use tauri::{App, Manager, PhysicalSize, Size};
 
 pub fn adjust_window_size(app: &App) {
-    let monitor = match app.primary_monitor().unwrap() {
-        Some(m) => m,
-        None => return,
+    let monitor = match app.primary_monitor() {
+        Ok(Some(m)) => m,
+        Ok(None) => {
+            eprintln!("Warning: No primary monitor detected, skipping window adjustment");
+            return;
+        }
+        Err(e) => {
+            eprintln!("Error: Failed to get primary monitor: {:?}", e);
+            return;
+        }
     };
-
     let size = monitor.size();
 
     if size.width < 1200 || size.height < 800 {

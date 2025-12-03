@@ -1,0 +1,173 @@
+\chapter*{Concluzii}
+\addcontentsline{toc}{chapter}{Concluzii}
+
+\textit{Nota: Acest capitol va fi finalizat la sfârșitul proiectului, după implementarea și validarea tuturor funcționalităților planificate.}
+
+\section*{Sinteza realizărilor}
+
+\textit{[To be completed]}
+
+Lucrarea de față și-a propus dezvoltarea platformei LiveCode, o soluție modernă pentru gestionarea și colaborarea în timp real asupra proiectelor remote, adresând limitările soluțiilor existente precum WinSCP și FileZilla.
+
+Principalele realizări ale proiectului includ:
+
+\begin{enumerate}
+    \item \textbf{Analiză comprehensivă} a problemelor existente în tooling-ul actual de management remote, identificând necesitatea unui sistem de file locking distribuit și a unei interfețe moderne
+
+    \item \textbf{Proiectare arhitecturală} solidă bazată pe tehnologii moderne:
+        \begin{itemize}
+            \item Tauri v2 pentru aplicația desktop cu footprint redus
+            \item React 19 pentru interfață utilizator reactivă
+            \item Rust pentru backend performant și sigur
+            \item PostgreSQL pentru persistență robustă
+        \end{itemize}
+
+    \item \textbf{Implementarea funcționalităților core:}
+        \begin{itemize}
+            \item Sistem de autentificare securizat cu criptare end-to-end
+            \item Gestionare conexiuni SSH/SFTP cu multiple metode de autentificare
+            \item File browser dual-pane cu operațiuni complete
+            \item Sistem de file locking distribuit pentru prevenirea conflictelor
+            \item Notificări în timp real prin WebSocket
+        \end{itemize}
+
+    \item \textbf{Validare} prin teste și exemple de utilizare din scenarii reale
+\end{enumerate}
+
+\section*{Provocări tehnice și soluții}
+
+\textit{[To be completed based on implementation challenges]}
+
+Pe parcursul dezvoltării platformei LiveCode, au fost întâmpinate și rezolvate mai multe provocări tehnice semnificative:
+
+\begin{itemize}
+    \item \textbf{Sincronizarea lock-urilor distribuite}
+        \begin{itemize}
+            \item Provocare: Asigurarea consistenței lock-urilor între multiple instanțe
+            \item Soluție: Implementare heartbeat mechanism cu timeout automat și reconciliation
+        \end{itemize}
+
+    \item \textbf{Performanța transferurilor SFTP}
+        \begin{itemize}
+            \item Provocare: Menținerea vitezelor competitive cu soluții mature
+            \item Soluție: Connection pooling, buffering optimizat, async I/O
+        \end{itemize}
+
+    \item \textbf{Securitatea credențialelor}
+        \begin{itemize}
+            \item Provocare: Stocare sigură fără a compromite UX
+            \item Soluție: Criptare AES-256-GCM cu master key derivat din parola user
+        \end{itemize}
+
+    \item \textbf{Cross-platform compatibility}
+        \begin{itemize}
+            \item Provocare: Diferențe între Windows, macOS și Linux
+            \item Soluție: Abstracțiuni oferite de Tauri și testare pe toate platformele
+        \end{itemize}
+\end{itemize}
+
+\section*{Contribuții și valoare adăugată}
+
+Comparativ cu soluțiile existente, LiveCode aduce următoarele contribuții:
+
+\begin{enumerate}
+    \item \textbf{Inovație tehnică:} Prima aplicație desktop SFTP bazată pe Tauri v2, demonstrând viabilitatea framework-ului pentru aplicații complexe de sistem
+
+    \item \textbf{File locking distribuit:} Mecanism unic în categoria tooling-ului SFTP desktop, rezolvând problema editărilor concurente
+
+    \item \textbf{Performanță superioară:} Consum redus de resurse (RAM, dimensiune aplicație) comparativ cu soluții bazate pe Electron
+
+    \item \textbf{Developer experience:} Interfață modernă, notificări în timp real, workflow optimizat pentru colaborare
+
+    \item \textbf{Open-source:} Cod disponibil comunității pentru extindere și customizare
+\end{enumerate}
+
+\section*{Limitări actuale}
+
+\textit{[To be completed - honest assessment of current limitations]}
+
+În stadiul actual de dezvoltare, LiveCode prezintă următoarele limitări care vor fi adresate în versiuni viitoare:
+
+\begin{itemize}
+    \item Suport limitat pentru protocoale suplimentare (FTP, WebDAV)
+    \item Lipsă integrare cu sisteme de version control (Git)
+    \item Funcționalități de team management incomplete
+    \item Coverage incomplet de teste automate
+    \item Documentație de utilizare în dezvoltare
+\end{itemize}
+
+\section*{Direcții de dezvoltare viitoare}
+
+\textit{[To be completed - realistic future roadmap]}
+
+Dezvoltarea LiveCode va continua în următoarele direcții:
+
+\subsection*{Pe termen scurt (3-6 luni)}
+\begin{itemize}
+    \item Finalizare sistem de file locking cu toate edge cases
+    \item Implementare diff viewer integrat pentru rezolvare conflicte
+    \item Adăugare suport pentru file templates și snippets
+    \item Extindere suite de teste automate
+    \item Optimizare performanță transferuri mari
+\end{itemize}
+
+\subsection*{Pe termen mediu (6-12 luni)}
+\begin{itemize}
+    \item Sistem de team management și permisiuni granulare
+    \item Integrare Git pentru sincronizare automată
+    \item Plugin system pentru extensibilitate
+    \item Mobile companion app pentru monitoring
+    \item Cloud sync pentru configurații între dispozitive
+\end{itemize}
+
+\subsection*{Pe termen lung (12+ luni)}
+\begin{itemize}
+    \item Suport protocoale suplimentare (WebDAV, S3, Azure Blob)
+    \item Live coding collaboration (multiplayer editing)
+    \item AI-assisted code suggestions și auto-completion pentru fișiere remote
+    \item Marketplace pentru plugins și teme
+    \item Enterprise features (SSO, audit logging, compliance)
+\end{itemize}
+
+\section*{Impactul educațional și profesional}
+
+\textit{[To be completed - personal reflections]}
+
+Dezvoltarea platformei LiveCode a reprezentat o experiență de învățare cuprinzătoare, acoperind multiple domenii:
+
+\begin{itemize}
+    \item \textbf{Programare systems-level:} Înțelegere profundă a Rust, memory safety, ownership
+    \item \textbf{Arhitectură software:} Proiectare layered architecture, separation of concerns
+    \item \textbf{Securitate:} Criptografie aplicată, threat modeling, secure coding practices
+    \item \textbf{Protocoale de rețea:} SSH, SFTP, WebSocket, flow control
+    \item \textbf{Baze de date:} Schema design, migrations, query optimization
+    \item \textbf{UI/UX design:} React patterns, responsive design, accessibility
+    \item \textbf{DevOps:} Build systems, CI/CD, cross-platform distribution
+\end{itemize}
+
+Competențele dobândite sunt direct aplicabile în industria software modernă, unde:
+\begin{itemize}
+    \item Rust devine din ce în ce mai adoptat pentru aplicații performante și sigure
+    \item Desktop applications rămân relevante pentru tooling profesional
+    \item Real-time collaboration devine standard în developer tools
+    \item Security și privacy sunt priorități critice
+\end{itemize}
+
+\section*{Cuvânt final}
+
+\textit{[To be completed]}
+
+LiveCode demonstrează că este posibil să construiești tooling modern, performant și user-friendly folosind tehnologii de ultimă generație. Proiectul nu doar că rezolvă probleme practice din workflow-ul dezvoltatorilor, dar servește și ca proof-of-concept pentru viabilitatea ecosistemului Rust în aplicații desktop complexe.
+
+Deși dezvoltarea continuă, fundamentele solide puse în această lucrare de licență asigură o bază solidă pentru evoluția platformei către un tool profesional de producție.
+
+Mulțumiri speciale coordonatorului științific, \textbf{Conf. Dr. Zalinescu Adrian}, pentru îndrumare și suport pe parcursul acestui proiect.
+
+\vspace{1cm}
+
+\begin{flushright}
+Marcoci Fabian-Constantin \\
+Iași, 2026
+\end{flushright}
+
+\newpage

@@ -1,4 +1,7 @@
+import { invoke } from "@tauri-apps/api/core";
 import { useState } from "react";
+import { useEffect } from "react";
+import { useDebounce } from "../../hooks/useDebounce";
 import {
   validateEmailValue,
   validateUsernameValue,
@@ -30,14 +33,15 @@ export default function RegisterForm({ onClose }: RegisterFormProps) {
   const [tempConfirmMessage, setTempConfirmMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
-
   const [errors, setErrors] = useState({
     email: "",
     username: "",
     password: "",
     confirmPassword: "",
+    general: "",
   });
-
+  const debouncedEmail = useDebounce(email, 500);
+  const debouncedUsername = useDebounce(username, 500);
   function validateRegisterForm() {
     const emailError = validateEmailValue(email);
     const usernameError = validateUsernameValue(username);
@@ -52,6 +56,7 @@ export default function RegisterForm({ onClose }: RegisterFormProps) {
       username: usernameError,
       password: passwordError,
       confirmPassword: confirmPasswordError,
+      general: "",
     });
 
     return (
@@ -64,15 +69,50 @@ export default function RegisterForm({ onClose }: RegisterFormProps) {
 
     setIsSubmitting(true);
 
-    await new Promise((res) => setTimeout(res, 1200));
+    try {
+      const response = await invoke<{
+        success: boolean;
+        field_errors?: Array<[string, string]>;
+        message: string;
+      }>("register_user", {
+        payload: {
+          email: email,
+          username: username,
+          password: password,
+        },
+      });
 
-    setSuccessMessage("Account created successfully!");
+      if (response.success) {
+        setSuccessMessage(response.message);
+        setTimeout(() => {
+          setIsSubmitting(false);
+          setSuccessMessage("");
+          onClose();
+        }, 2000);
+      } else {
+        if (response.field_errors) {
+          const newErrors: any = {};
+          response.field_errors.forEach(([field, error]) => {
+            newErrors[field] = error;
+          });
+          setErrors((prev) => ({ ...prev, ...newErrors }));
+        }
 
-    setTimeout(() => {
+        setIsSubmitting(false);
+      }
+    } catch (error) {
+      console.error("Registration failed:", error);
+
+      setErrors((prev) => ({
+        ...prev,
+        general:
+          typeof error === "string"
+            ? error
+            : "An unexpected error occurred. Please try again.",
+      }));
+
       setIsSubmitting(false);
-      setSuccessMessage("");
-      onClose();
-    }, 1500);
+    }
   }
 
   function showEmailTemp(msg: string) {
@@ -102,6 +142,42 @@ export default function RegisterForm({ onClose }: RegisterFormProps) {
       setShakeField(null);
     }, 250);
   }
+
+  useEffect(() => {
+    if (!debouncedEmail || validateEmailValue(debouncedEmail)) {
+      return;
+    }
+
+    invoke<boolean | null>("check_email_available", { email: debouncedEmail })
+      .then((available) => {
+        if (available === false) {
+          setErrors((prev) => ({
+            ...prev,
+            email: "This email is already taken.",
+          }));
+        }
+      })
+      .catch((err) => console.error("Check email failed:", err));
+  }, [debouncedEmail]);
+
+  useEffect(() => {
+    if (!debouncedUsername || validateUsernameValue(debouncedUsername)) {
+      return;
+    }
+
+    invoke<boolean | null>("check_username_available", {
+      username: debouncedUsername,
+    })
+      .then((available) => {
+        if (available === false) {
+          setErrors((prev) => ({
+            ...prev,
+            username: "This username is already taken.",
+          }));
+        }
+      })
+      .catch((err) => console.error("Check username failed:", err));
+  }, [debouncedUsername]);
 
   return (
     <div className="auth-form">
@@ -134,8 +210,10 @@ export default function RegisterForm({ onClose }: RegisterFormProps) {
             const normalized = email.trim().toLowerCase();
             setEmail(normalized);
 
-            const msg = validateEmailValue(normalized);
-            setErrors((prev) => ({ ...prev, email: msg }));
+            if (errors.email !== "This email is already taken.") {
+              const msg = validateEmailValue(normalized);
+              setErrors((prev) => ({ ...prev, email: msg }));
+            }
           }}
           placeholder="you@example.com"
         />
@@ -175,13 +253,16 @@ export default function RegisterForm({ onClose }: RegisterFormProps) {
 
             const finalUsername = "@" + usernameBody;
             setUsername(finalUsername);
-
-            const msg = validateUsernameValue(finalUsername);
-            setErrors((prev) => ({ ...prev, username: msg }));
+            if (errors.username) {
+              const msg = validateUsernameValue(finalUsername);
+              setErrors((prev) => ({ ...prev, username: msg }));
+            }
           }}
           onBlur={() => {
-            const msg = validateUsernameValue(username);
-            setErrors((prev) => ({ ...prev, username: msg }));
+            if (errors.username !== "This username is already taken.") {
+              const msg = validateUsernameValue(username);
+              setErrors((prev) => ({ ...prev, username: msg }));
+            }
           }}
           placeholder="@username"
         />
@@ -316,6 +397,7 @@ export default function RegisterForm({ onClose }: RegisterFormProps) {
         {isSubmitting ? <div className="spinner"></div> : "Create Account"}
       </button>
       {successMessage && <p className="success-text">{successMessage}</p>}
+      {errors.general && <p className="error-text">{errors.general}</p>}
     </div>
   );
 }

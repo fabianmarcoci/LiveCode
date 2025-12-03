@@ -1,0 +1,326 @@
+\chapter{Exemple de utilizare}
+
+\textit{Nota: Acest capitol va fi dezvoltat pe măsură ce funcționalitățile platformei sunt finalizate și testate. Vor fi adăugate capturi de ecran, demonstrații de workflow și scenarii de utilizare reale.}
+
+\section{Configurarea inițială}
+
+\textit{[PLANNED]}
+
+\subsection{Instalarea aplicației}
+
+Procesul de instalare va include:
+\begin{itemize}
+    \item Download installer pentru Windows/macOS/Linux
+    \item Instalare și configurare inițială
+    \item Verificare integritate și semnături digitale
+\end{itemize}
+
+\subsection{Crearea primului cont}
+
+Workflow de onboarding pentru noi utilizatori:
+\begin{enumerate}
+    \item Accesare ecran de înregistrare
+    \item Completare formular (email, parolă)
+    \item Validare email (opțional)
+    \item Login și configurare profil
+\end{enumerate}
+
+\section{Gestionarea conexiunilor SSH/SFTP}
+
+\textit{[PLANNED]}
+
+\subsection{Adăugarea unei conexiuni noi}
+
+Demonstrație pas cu pas:
+\begin{enumerate}
+    \item Navigare la secțiunea "Connections"
+    \item Click pe "Add New Connection"
+    \item Completare detalii conexiune:
+        \begin{itemize}
+            \item Host: example.com
+            \item Port: 22
+            \item Username: developer
+            \item Tip autentificare: SSH Key
+        \end{itemize}
+    \item Testare conexiune
+    \item Salvare configurație
+\end{enumerate}
+
+\textit{[Aici va fi adăugată captură de ecran cu formularul de adăugare conexiune]}
+
+\subsection{Tipuri de autentificare}
+
+\subsubsection{Autentificare cu parolă}
+
+Exemplu de configurare:
+\begin{itemize}
+    \item Selectare "Password Authentication"
+    \item Introducere parolă (salvată criptat)
+    \item Opțiune "Remember password"
+\end{itemize}
+
+\subsubsection{Autentificare cu cheie SSH}
+
+Workflow pentru chei SSH:
+\begin{itemize}
+    \item Selectare fișier cheie privată (id\_rsa, id\_ed25519)
+    \item Introducere passphrase (dacă există)
+    \item Validare format cheie
+    \item Test autentificare
+\end{itemize}
+
+\section{Browsing și operațiuni pe fișiere}
+
+\textit{[PLANNED]}
+
+\subsection{Navigarea în sistemul de fișiere remote}
+
+Interfața dual-pane:
+\begin{itemize}
+    \item Panel stânga - Fișiere locale
+    \item Panel dreapta - Fișiere remote
+    \item Sincronizare navigare între paneluri
+\end{itemize}
+
+\textit{[Aici va fi adăugată captură de ecran cu file browser dual-pane]}
+
+\subsection{Upload și download de fișiere}
+
+Scenarii tipice:
+
+\textbf{Scenariul 1: Upload fișier de configurare}
+\begin{enumerate}
+    \item Selectare fișier local: \texttt{config/app.conf}
+    \item Drag \& drop către panel remote
+    \item Monitorizare progress bar
+    \item Confirmare transfer reușit
+\end{enumerate}
+
+\textbf{Scenariul 2: Download log files pentru debugging}
+\begin{enumerate}
+    \item Navigare la \texttt{/var/log/application/}
+    \item Selectare multiplă fișiere log
+    \item Click dreapta → Download
+    \item Selectare destinație locală
+    \item Monitorizare transfer batch
+\end{enumerate}
+
+\subsection{Operațiuni avansate}
+
+\textit{[PLANNED]}
+
+\begin{itemize}
+    \item Modificare permisiuni (chmod)
+    \item Redenumire fișiere/directoare
+    \item Creare directoare noi
+    \item Ștergere cu confirmare
+    \item Copy/Move între directoare remote
+\end{itemize}
+
+\section{Sistemul de file locking în acțiune}
+
+\textit{[PLANNED - Funcționalitate core]}
+
+\subsection{Scenariul 1: Editare fără conflict}
+
+Workflow ideal:
+\begin{enumerate}
+    \item \textbf{User A} deschide \texttt{server.conf} pentru editare
+    \item Sistemul:
+        \begin{itemize}
+            \item Verifică disponibilitatea fișierului
+            \item Creează lock în database
+            \item Notifică toți utilizatorii conectați
+            \item Deschide editorul integrat
+        \end{itemize}
+    \item \textbf{User B} încearcă să deschidă același fișier
+    \item Sistemul afișează notificare:
+        \begin{quote}
+        "Fișierul server.conf este în curs de editare de către User A (john@example.com). Doriți să deschideți în modul read-only?"
+        \end{quote}
+    \item \textbf{User A} finalizează modificările și salvează
+    \item Sistemul eliberează lock-ul
+    \item \textbf{User B} primește notificare: "server.conf este acum disponibil"
+\end{enumerate}
+
+\textit{[Aici vor fi adăugate capturi de ecran pentru fiecare pas]}
+
+\subsection{Scenariul 2: Lock timeout și recuperare}
+
+Gestionarea lock-urilor abandonate:
+\begin{enumerate}
+    \item User deschide fișier și își închide aplicația fără să salveze
+    \item Lock rămâne activ pentru 5 minute (grace period)
+    \item După timeout, sistemul:
+        \begin{itemize}
+            \item Eliberează automat lock-ul
+            \item Notifică utilizatorii în așteptare
+            \item Loghează evenimentul
+        \end{itemize}
+\end{enumerate}
+
+\subsection{Scenariul 3: Force unlock (administrator)}
+
+Pentru situații excepționale:
+\begin{enumerate}
+    \item Administrator identifică lock blocat
+    \item Click dreapta pe fișier → "View Lock Info"
+    \item Verificare detalii lock (cine, când, de cât timp)
+    \item Click "Force Unlock" cu confirmare
+    \item Sistem notifică utilizatorul care deținea lock-ul
+\end{enumerate}
+
+\section{Colaborarea în timp real}
+
+\textit{[PLANNED]}
+
+\subsection{Notificări live}
+
+Tipuri de notificări demonstrate:
+\begin{itemize}
+    \item File locked/unlocked events
+    \item User online/offline status
+    \item Modificări în directoare monitorizate
+    \item System events (connection lost, reconnected)
+\end{itemize}
+
+\subsection{Activity feed}
+
+Timeline cu activitatea echipei:
+\begin{itemize}
+    \item "John locked database.sql - 2 minutes ago"
+    \item "Maria uploaded deploy.sh - 5 minutes ago"
+    \item "Alex unlocked config.yml - 10 minutes ago"
+\end{itemize}
+
+\section{Workflow complet: De la conectare la deployment}
+
+\textit{[PLANNED]}
+
+\subsection{Cazul de utilizare: Update configurație server web}
+
+Scenariul real și complet:
+
+\textbf{Context:} Echipă de 3 developeri lucrează pe același server de staging, trebuie să actualizeze configurația Nginx pentru un nou endpoint API.
+
+\textbf{Pași:}
+\begin{enumerate}
+    \item \textbf{Connect:}
+        \begin{itemize}
+            \item Developer 1 deschide LiveCode
+            \item Selectează conexiunea "Staging Server"
+            \item Autentificare automată cu cheie SSH salvată
+            \item Conectare stabilită
+        \end{itemize}
+
+    \item \textbf{Navigate:}
+        \begin{itemize}
+            \item Navigare la \texttt{/etc/nginx/sites-available/}
+            \item Sortare fișiere după data modificării
+            \item Identificare fișier: \texttt{api.example.com.conf}
+        \end{itemize}
+
+    \item \textbf{Lock \& Edit:}
+        \begin{itemize}
+            \item Double-click pe fișier
+            \item Sistem verifică lock status
+            \item Fișier disponibil → lock acquired
+            \item Developer 2 și 3 primesc notificare
+            \item Editor se deschide cu conținut
+        \end{itemize}
+
+    \item \textbf{Modify:}
+        \begin{itemize}
+            \item Adăugare bloc location pentru \texttt{/api/v2/}
+            \item Syntax highlighting pentru Nginx config
+            \item Auto-save draft local (fără unlock)
+        \end{itemize}
+
+    \item \textbf{Save \& Deploy:}
+        \begin{itemize}
+            \item Click "Save" → upload la server
+            \item Lock eliberat automat
+            \item Notificare către echipă: "api.example.com.conf updated"
+            \item Developer verifică în terminal: \texttt{nginx -t}
+            \item Reload Nginx: \texttt{systemctl reload nginx}
+        \end{itemize}
+\end{enumerate}
+
+\textit{[Aici va fi adăugat un flow diagram vizual]}
+
+\section{Performanță și metrici}
+
+\textit{[PLANNED]}
+
+\subsection{Benchmark-uri}
+
+Comparații de performanță cu WinSCP:
+
+\begin{table}[h]
+\caption{Transfer speed comparison}
+\centering
+\begin{tabular}{|l|c|c|}
+\hline
+\textbf{Operațiune} & \textbf{WinSCP} & \textbf{LiveCode} \\
+\hline
+Upload 1GB file & X sec & Y sec \\
+Download 1000 small files & X sec & Y sec \\
+Directory listing (10k files) & X sec & Y sec \\
+\hline
+\end{tabular}
+\end{table}
+
+\textit{[Benchmark-urile vor fi efectuate după implementarea completă]}
+
+\subsection{Consumul de resurse}
+
+Monitorizare:
+\begin{itemize}
+    \item RAM usage: idle vs active transfer
+    \item CPU usage: during file operations
+    \item Disk I/O: sustained transfer rates
+    \item Network efficiency: protocol overhead
+\end{itemize}
+
+\section{Gestionarea erorilor}
+
+\textit{[PLANNED]}
+
+\subsection{Scenarii de eroare și recuperare}
+
+\textbf{Eroare 1: Connection timeout}
+\begin{itemize}
+    \item Cauză: Server inaccesibil sau firewall
+    \item Notificare user: "Failed to connect to example.com:22"
+    \item Acțiuni disponibile: Retry, Edit connection, Cancel
+\end{itemize}
+
+\textbf{Eroare 2: Authentication failed}
+\begin{itemize}
+    \item Cauză: Credențiale invalide sau cheie expirată
+    \item Notificare: "Authentication failed. Please check credentials"
+    \item Acțiuni: Re-enter password, Select different key
+\end{itemize}
+
+\textbf{Eroare 3: Permission denied}
+\begin{itemize}
+    \item Cauză: Permisiuni insuficiente pe server
+    \item Notificare: "Permission denied for /var/www/html/"
+    \item Sugestie: "Contact administrator or check file permissions"
+\end{itemize}
+
+\section{Concluzii parțiale}
+
+Acest capitol a demonstrat (și va demonstra pe măsură ce funcționalitățile sunt implementate) cum LiveCode îmbunătățește workflow-ul de lucru cu servere remote prin:
+
+\begin{itemize}
+    \item Interfață intuitivă și modernă
+    \item Sistem de file locking transparent și eficient
+    \item Notificări în timp real pentru colaborare
+    \item Performanță optimizată pentru operațiuni frecvente
+    \item Gestionare elegantă a erorilor
+\end{itemize}
+
+Exemplele prezentate ilustrează cazuri de utilizare reale din activitatea zilnică a dezvoltatorilor și administratorilor de sistem.
+
+\newpage

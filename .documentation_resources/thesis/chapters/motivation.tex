@@ -1,0 +1,70 @@
+\chapter*{Motivație}
+\addcontentsline{toc}{chapter}{Motivație}
+
+Alegerea temei acestei lucrări de licență a fost ghidată de confluența dintre nevoile practice ale dezvoltatorilor moderni și oportunitățile oferite de tehnologiile emergente în domeniul aplicațiilor desktop cross-platform.
+
+\section*{Motivația personală}
+
+Experiența personală de lucru cu diverse instrumente de gestionare a fișierelor remote, în special WinSCP, a evidențiat o serie de limitări care afectează productivitatea în contextul colaborării moderne. Frustrarea cauzată de conflictele de editare simultană, lipsa vizibilității asupra activității colegilor de echipă și interfața învechită au constituit punctul de plecare pentru conceptualizarea platformei LiveCode.
+
+Pasiunea pentru tehnologiile moderne, în special Rust și Tauri, a reprezentat un factor motivațional suplimentar. Rust oferă garanții de siguranță a memoriei și performanță excepțională, în timp ce Tauri permite crearea de aplicații desktop native folosind tehnologii web, reducând semnificativ dimensiunea aplicației finale comparativ cu alternative precum Electron.
+
+\section*{Relevanța în contextul actual}
+
+Pandemia COVID-19 a accelerat dramatic tranziția către munca la distanță, transformând colaborarea remote dintr-o opțiune într-o necesitate. Statisticile recente arată că:
+
+\begin{itemize}
+    \item Peste 70\% dintre dezvoltatorii software lucrează cel puțin parțial de la distanță
+    \item Numărul proiectelor open-source cu contributori distribuiți geografic a crescut cu peste 150\% în ultimii 3 ani
+    \item Conflictele de editare simultană reprezintă una dintre principalele cauze de pierdere a timpului în echipele distribuite
+\end{itemize}
+
+În acest context, nevoia pentru instrumente moderne de colaborare asupra fișierelor remote nu a fost niciodată mai acută. LiveCode răspunde acestei nevoi prin integrarea mecanismelor de file locking direct în fluxul de lucru, permițând echipelor să colaboreze eficient fără riscul conflictelor.
+
+\section*{Oportunitatea tehnologică}
+
+Ecosistemul Rust a cunoscut o creștere exponențială în ultimii ani, cu adopție crescândă în industrie (Mozilla, Microsoft, Amazon, Discord). Tauri, ca framework pentru aplicații desktop bazat pe Rust, a atins maturitatea necesară pentru dezvoltarea de aplicații production-ready, oferind:
+
+\begin{itemize}
+    \item Dimensiuni reduse ale aplicației (sub 10 MB comparativ cu 100+ MB pentru Electron)
+    \item Consum redus de memorie RAM (sub 50 MB vs 300+ MB pentru Electron)
+    \item Securitate sporită prin izolarea proceselor și verificările de tip din Rust
+    \item Performanță nativă pe toate platformele majore (Windows, macOS, Linux)
+\end{itemize}
+
+\section*{Valoarea educațională}
+
+Din perspectiva formării profesionale, acest proiect oferă oportunitatea de a:
+
+\begin{enumerate}
+    \item \textbf{Aprofunda cunoștințele de programare sistem} prin utilizarea Rust pentru componente critice de performanță și securitate
+    \item \textbf{Înțelege arhitecturile moderne} de aplicații desktop, bazate pe separarea strictă între frontend (React) și backend (Rust)
+    \item \textbf{Implementa protocoale de rețea} complexe (SSH/SFTP) într-un mediu securizat
+    \item \textbf{Gestiona baze de date} relaționale (PostgreSQL) pentru persistența datelor utilizatorilor și configurațiilor
+    \item \textbf{Dezvolta competențe de UI/UX} prin crearea unei interfețe moderne și intuitive
+\end{enumerate}
+
+\section*{Potențialul de impact}
+
+LiveCode nu vizează doar rezolvarea unei probleme tehnice, ci transformarea modului în care echipele colaborează asupra proiectelor remote. Prin implementarea file locking-ului și a notificărilor în timp real, platforma poate:
+
+\begin{itemize}
+    \item Reduce timpul pierdut cu rezolvarea conflictelor de editare cu până la 80\%
+    \item Îmbunătăți vizibilitatea asupra activității echipei, facilitând coordonarea
+    \item Spori productivitatea prin eliminarea fricțiunilor în fluxul de lucru
+    \item Oferi o alternativă open-source la soluțiile proprietare costisitoare
+\end{itemize}
+
+\section*{Viziunea pe termen lung}
+
+Dincolo de obiectivele imediate ale lucrării de licență, LiveCode este conceput cu o viziune pe termen lung:
+
+\begin{itemize}
+    \item \textbf{Extensibilitate} - Arhitectura modulară permite adăugarea facilă de noi funcționalități
+    \item \textbf{Comunitate open-source} - Publicarea codului sursă pentru a permite contribuții din partea comunității
+    \item \textbf{Evoluție continuă} - Roadmap clar pentru funcționalități viitoare (terminal integrat, editor de cod, integrare CI/CD)
+\end{itemize}
+
+Această lucrare reprezintă astfel mai mult decât un proiect academic - este primul pas către crearea unui instrument care poate avea impact real în comunitatea dezvoltatorilor, demonstrând că tehnologiile moderne pot aduce soluții elegante la probleme complexe de colaborare.
+
+\newpage

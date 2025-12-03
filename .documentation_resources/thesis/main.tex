@@ -1,0 +1,125 @@
+% Universitatea de Vest din Timișoara
+% Facultatea de Matematică și Informatică
+% Lucrare de Licență - LiveCode
+% Autor: Marcoci Fabian-Constantin
+% Coordonator: Zalinescu Adrian
+
+\documentclass[12pt,a4paper]{report}
+
+% Pachete necesare
+\usepackage[utf8]{inputenc}
+\usepackage[romanian]{babel}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{tocloft}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{caption}
+\usepackage{subcaption}
+
+% Configurare pagină
+\geometry{
+    a4paper,
+    left=3cm,
+    right=2cm,
+    top=2.5cm,
+    bottom=2.5cm
+}
+
+% Configurare hyperlink-uri
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    filecolor=black,
+    urlcolor=blue,
+    citecolor=black
+}
+
+% Configurare listări cod
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny,
+    keywordstyle=\color{blue},
+    commentstyle=\color{green!60!black},
+    stringstyle=\color{red},
+    showstringspaces=false
+}
+
+% Configurare stiluri capitole
+\titleformat{\chapter}[display]
+{\normalfont\huge\bfseries}{\chaptertitlename\ \thechapter}{20pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{0pt}{40pt}
+
+% Header și footer
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[R]{\thepage}
+\fancyhead[L]{\leftmark}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\begin{document}
+
+% ============================================
+% FRONT MATTER
+% ============================================
+
+\pagenumbering{roman}
+
+% Copertă
+\input{chapters/cover}
+
+% Pagina de titlu
+\input{chapters/title}
+
+% Declarații
+\input{chapters/declarations}
+
+% Cuprins
+\tableofcontents
+\newpage
+
+% ============================================
+% MAIN MATTER
+% ============================================
+
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+% Introducere
+\input{chapters/introduction}
+
+% Motivație
+\input{chapters/motivation}
+
+% Capitolul 1: Analiza Problemei
+\input{chapters/chapter1}
+
+% Capitolul 2: Tehnologii și Arhitectură
+\input{chapters/chapter2}
+
+% Capitolul 3: Implementare
+\input{chapters/chapter3}
+
+% Capitolul 4: Exemple de Utilizare
+\input{chapters/chapter4}
+
+% Concluzii
+\input{chapters/conclusions}
+
+% Bibliografie
+\bibliographystyle{plain}
+\bibliography{references}
+
+% Anexe (opțional)
+% \appendix
+% \input{chapters/appendix}
+
+\end{document}

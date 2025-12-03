@@ -1,2 +1,7 @@
 // Create revertable migrations
 sqlx migrate add -r name_of_migration
+// Latex
+pdflatex main.tex
+bibtex main
+pdflatex main.tex
+pdflatex main.tex

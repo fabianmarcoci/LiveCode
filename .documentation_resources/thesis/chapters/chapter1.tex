@@ -1,0 +1,191 @@
+\chapter{Analiza Problemei}
+
+\section{Contextualizarea problemei}
+
+Gestionarea fișierelor remote și colaborarea asupra proiectelor distribuite reprezintă provocări fundamentale în dezvoltarea software modernă. Cu tranziția accelerată către munca la distanță și creșterea echipelor distribuite geografic, necesitatea unor instrumente eficiente pentru accesarea și modificarea fișierelor de pe servere remote a devenit critică.
+
+\subsection{Scenarii comune de utilizare}
+
+În practica curentă, dezvoltatorii și administratorii de sistem se confruntă frecvent cu următoarele scenarii:
+
+\begin{enumerate}
+    \item \textbf{Editarea fișierelor de configurare} pe servere de producție sau staging, unde modificările trebuie aplicate rapid și precis
+    \item \textbf{Dezvoltarea și debugging} pe mașini virtuale sau containere remote, unde mediul local diferă semnificativ de cel de producție
+    \item \textbf{Colaborarea asupra aceluiași proiect} de către mai mulți dezvoltatori care editează fișiere pe un server partajat
+    \item \textbf{Transferul de fișiere mari} între stațiile locale și servere remote, necesitând rezumarea transferurilor întrerupte
+    \item \textbf{Sincronizarea directoarelor} între multiple locații pentru backup sau deployment
+\end{enumerate}
+
+\subsection{Limitările soluțiilor existente}
+
+Analiza instrumentelor actuale relevă mai multe categorii de limitări:
+
+\subsubsection{Limitări tehnice}
+
+\begin{itemize}
+    \item \textbf{Lipsa mecanismelor de blocare} - Majoritatea soluțiilor (WinSCP, FileZilla, Cyberduck) nu oferă file locking, permițând editarea simultană și generarea de conflicte
+    \item \textbf{Sincronizare unidirecțională} - Sincronizarea este de obicei manuală și nu detectează modificările concurente
+    \item \textbf{Performanță limitată} - Transferurile de fișiere mici multiple sunt ineficiente din cauza overhead-ului protocolului
+    \item \textbf{Lipsă de vizibilitate} - Nu există notificări în timp real despre activitatea altor utilizatori
+\end{itemize}
+
+\subsubsection{Limitări de user experience}
+
+\begin{itemize}
+    \item \textbf{Interfețe învechite} - Multe soluții folosesc paradigme UI din anii 2000, neadaptate la standardele moderne
+    \item \textbf{Fluxuri de lucru discontinue} - Editarea fișierelor necesită download manual, editare locală, apoi upload
+    \item \textbf{Lipsă de context} - Utilizatorii nu pot vedea cine altcineva lucrează pe aceleași fișiere
+    \item \textbf{Configurare complexă} - Salvarea și gestionarea conexiunilor multiple este greoaie
+\end{itemize}
+
+\section{Provocări în colaborarea remote}
+
+\subsection{Conflictele de editare simultană}
+
+Cea mai semnificativă provocare în colaborarea asupra fișierelor remote este gestionarea editărilor concurente. Scenariul tipic:
+
+\begin{enumerate}
+    \item Utilizatorul A descarcă fișierul \texttt{config.yml} la ora 10:00
+    \item Utilizatorul B descarcă același fișier la ora 10:05
+    \item Utilizatorul A modifică și încarcă fișierul la ora 10:15
+    \item Utilizatorul B modifică și încarcă fișierul la ora 10:20, suprascriind modificările lui A
+\end{enumerate}
+
+Acest pattern, cunoscut ca "lost update problem", poate avea consecințe grave:
+
+\begin{itemize}
+    \item Pierderea de muncă și timp pentru recuperarea modificărilor
+    \item Introducerea de bug-uri în producție din cauza configurărilor inconsistente
+    \item Frustrare și reducerea productivității echipei
+    \item Necesitatea unor procese manuale de reconciliere
+\end{itemize}
+
+\subsection{Lipsa de vizibilitate}
+
+Instrumentele actuale nu oferă transparență asupra activității echipei:
+
+\begin{itemize}
+    \item Nu există indicator vizibil că un fișier este în curs de editare de alt utilizator
+    \item Istoricul modificărilor este limitat sau inexistent
+    \item Nu există notificări despre modificări importante
+    \item Greu de coordonat cu colegii fără comunicare externă (Slack, Teams, etc.)
+\end{itemize}
+
+\subsection{Securitatea și gestionarea accesului}
+
+Problemele de securitate includ:
+
+\begin{itemize}
+    \item Salvarea parolelor în plain text sau cu criptare slabă
+    \item Lipsa autentificării cu doi factori (2FA)
+    \item Gestionarea ineficientă a cheilor SSH
+    \item Absența auditării acțiunilor utilizatorilor
+    \item Permissions management complex pe servere partajate
+\end{itemize}
+
+\section{Cerințele pentru o soluție modernă}
+
+Pe baza analizei limitărilor și provocărilor identificate, o platformă modernă de gestionare a fișierelor remote trebuie să îndeplinească următoarele cerințe:
+
+\subsection{Cerințe funcționale}
+
+\subsubsection{File Locking și Colaborare}
+
+\begin{itemize}
+    \item \textbf{FL-01}: Sistem de blocare a fișierelor (file locking) pentru prevenirea editărilor concurente
+    \item \textbf{FL-02}: Notificări în timp real când un utilizator blochează/deblochează un fișier
+    \item \textbf{FL-03}: Vizualizare clară a stării fișierelor (disponibil, blocat de mine, blocat de altcineva)
+    \item \textbf{FL-04}: Mecanism de timeout pentru deblocarea automată în caz de inactivitate
+    \item \textbf{FL-05}: Force unlock cu permisiuni administrative
+\end{itemize}
+
+\subsubsection{Gestionarea Conexiunilor}
+
+\begin{itemize}
+    \item \textbf{GC-01}: Suport pentru SSH/SFTP cu autentificare prin parolă sau cheie
+    \item \textbf{GC-02}: Salvarea securizată a configurațiilor de conexiune
+    \item \textbf{GC-03}: Organizarea conexiunilor în proiecte/grupuri
+    \item \textbf{GC-04}: Import/export configurații pentru migrare sau backup
+    \item \textbf{GC-05}: Testare conexiune înainte de salvare
+\end{itemize}
+
+\subsubsection{Interfața Utilizator}
+
+\begin{itemize}
+    \item \textbf{UI-01}: File browser modern cu drag \& drop
+    \item \textbf{UI-02}: Preview pentru fișiere text/imagine
+    \item \textbf{UI-03}: Search și filtering avansat
+    \item \textbf{UI-04}: Multi-tab support pentru lucrul cu mai multe conexiuni
+    \item \textbf{UI-05}: Dark mode și teme customizabile
+\end{itemize}
+
+\subsection{Cerințe non-funcționale}
+
+\subsubsection{Performanță}
+
+\begin{itemize}
+    \item \textbf{PERF-01}: Aplicația să pornească în sub 2 secunde
+    \item \textbf{PERF-02}: Consumul de RAM să fie sub 100 MB în idle
+    \item \textbf{PERF-03}: UI responsive cu 60 FPS
+    \item \textbf{PERF-04}: Transferuri cu viteză apropiată de limita bandwidth-ului
+\end{itemize}
+
+\subsubsection{Securitate}
+
+\begin{itemize}
+    \item \textbf{SEC-01}: Criptarea datelor sensibile (parole, chei SSH) în baza de date
+    \item \textbf{SEC-02}: Validarea input-urilor pentru prevenirea injecțiilor
+    \item \textbf{SEC-03}: Audit log pentru operațiuni critice
+    \item \textbf{SEC-04}: Auto-lock după inactivitate
+\end{itemize}
+
+\subsubsection{Portabilitate}
+
+\begin{itemize}
+    \item \textbf{PORT-01}: Suport nativ pentru Windows, macOS și Linux
+    \item \textbf{PORT-02}: Dimensiune installer sub 15 MB
+    \item \textbf{PORT-03}: Nu necesită instalare de runtime-uri adiționale
+\end{itemize}
+
+\section{Comparație cu soluțiile existente}
+
+\begin{table}[h]
+\centering
+\caption{Comparație funcționalități LiveCode vs. competitori}
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{Funcționalitate} & \textbf{WinSCP} & \textbf{FileZilla} & \textbf{Cyberduck} & \textbf{LiveCode} \\
+\hline
+File Locking & ✗ & ✗ & ✗ & ✓ \\
+\hline
+Real-time collaboration & ✗ & ✗ & ✗ & ✓ \\
+\hline
+Modern UI & ✗ & ✗ & Partial & ✓ \\
+\hline
+Cross-platform & ✗ & ✓ & ✓ & ✓ \\
+\hline
+Dimensiune < 20 MB & ✓ & ✗ & ✗ & ✓ \\
+\hline
+RAM < 100 MB & ✓ & Partial & Partial & ✓ \\
+\hline
+Project management & ✗ & ✗ & ✗ & ✓ \\
+\hline
+Dark mode & ✗ & Partial & ✓ & ✓ \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{Concluzii}
+
+Analiza efectuată relevă o nevoie clară pentru o soluție modernă de gestionare a fișierelor remote, care să integreze colaborarea în timp real și să prevină conflictele de editare. LiveCode răspunde acestor nevoi prin:
+
+\begin{itemize}
+    \item Implementarea unui sistem robust de file locking
+    \item Interfață modernă și intuitivă bazată pe React
+    \item Performanță superioară datorită Tauri și Rust
+    \item Securitate sporită prin criptare și audit logging
+\end{itemize}
+
+Următorul capitol va detalia stack-ul tehnologic ales și arhitectura platformei LiveCode.
+
+\newpage

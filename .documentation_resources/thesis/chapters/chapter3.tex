@@ -1,0 +1,289 @@
+\chapter{Implementare}
+
+\textit{Nota: Acest capitol va fi dezvoltat progresiv pe măsură ce funcționalitățile sunt implementate. Secțiunile marcate cu [IN PROGRESS] sau [PLANNED] vor fi completate în etapele următoare de dezvoltare.}
+
+\section{Configurarea mediului de dezvoltare}
+
+\subsection{Prerequisites și instalare}
+
+Dezvoltarea platformei LiveCode necesită următoarele componente:
+
+\begin{itemize}
+    \item \textbf{Rust} - versiunea 1.70+ (toolchain stable)
+    \item \textbf{Node.js} - versiunea 18+ pentru React și tooling
+    \item \textbf{PostgreSQL} - versiunea 14+ pentru baza de date
+    \item \textbf{Tauri CLI} - pentru build și development
+\end{itemize}
+
+\subsection{Structura proiectului}
+
+\begin{lstlisting}[language=bash, caption=Structura completă a proiectului]
+LiveCode/
+├── src/                    # Frontend React
+│   ├── components/
+│   ├── hooks/
+│   ├── services/
+│   └── App.tsx
+├── src-tauri/             # Backend Rust
+│   ├── src/
+│   ├── Cargo.toml
+│   └── tauri.conf.json
+├── migrations/            # Database migrations
+└── docs/                  # Documentație
+\end{lstlisting}
+
+\section{Autentificare și gestionarea sesiunilor}
+
+\subsection{Înregistrarea utilizatorilor}
+
+\textit{[IN PROGRESS]}
+
+Fluxul de înregistrare:
+
+\begin{enumerate}
+    \item Utilizatorul completează formularul cu email și parolă
+    \item Frontend validează input-urile (format email, lungime parolă)
+    \item Request trimis către Tauri command \texttt{register\_user}
+    \item Backend:
+        \begin{itemize}
+            \item Verifică unicitatea email-ului
+            \item Hash-uiește parola cu bcrypt
+            \item Salvează utilizatorul în baza de date
+            \item Generează token de sesiune
+        \end{itemize}
+    \item Frontend primește token și îl salvează
+\end{enumerate}
+
+\subsection{Autentificarea utilizatorilor}
+
+\textit{[IN PROGRESS]}
+
+Sistemul de autentificare implementat folosește:
+\begin{itemize}
+    \item JWT tokens pentru sesiuni
+    \item Refresh tokens pentru re-autentificare
+    \item Bcrypt pentru hashing-ul parolelor
+\end{itemize}
+
+\subsection{Gestionarea sesiunilor}
+
+\textit{[PLANNED]}
+
+\begin{itemize}
+    \item Sesiuni persistente cu durata configurabilă
+    \item Auto-logout după inactivitate
+    \item Posibilitatea de a vedea și revoca sesiunile active
+\end{itemize}
+
+\section{Gestionarea proiectelor și conexiunilor}
+
+\subsection{Crearea și organizarea proiectelor}
+
+\textit{[PLANNED]}
+
+Proiectele permit gruparea logică a conexiunilor:
+\begin{itemize}
+    \item CRUD operations pentru proiecte
+    \item Organizare ierarhică
+    \item Partajare între utilizatori (viitor)
+\end{itemize}
+
+\subsection{Configurarea conexiunilor SSH/SFTP}
+
+\textit{[PLANNED]}
+
+\subsubsection{Tipuri de autentificare suportate}
+
+\begin{enumerate}
+    \item \textbf{Parolă} - Salvată criptat în baza de date
+    \item \textbf{Cheie SSH} - Support pentru RSA, Ed25519, ECDSA
+    \item \textbf{SSH Agent} - Folosire chei din agent-ul sistem
+\end{enumerate}
+
+\subsubsection{Testarea conexiunilor}
+
+Înainte de salvare, sistemul testează conectivitatea:
+\begin{itemize}
+    \item Verificare host reachability
+    \item Testare autentificare
+    \item Verificare permisiuni SFTP
+\end{itemize}
+
+\section{File browser și operațiuni SFTP}
+
+\subsection{Listarea fișierelor}
+
+\textit{[PLANNED]}
+
+Interfața de file browsing va include:
+\begin{itemize}
+    \item Vizualizare tip dual-pane (local | remote)
+    \item Sorting și filtering
+    \item Search recursiv
+    \item Preview pentru fișiere text/imagine
+\end{itemize}
+
+\subsection{Operațiuni pe fișiere}
+
+\textit{[PLANNED]}
+
+Operațiuni suportate:
+\begin{itemize}
+    \item Upload/Download cu progress tracking
+    \item Rename, Delete, Create directory
+    \item Chmod (modificare permisiuni)
+    \item Copy/Move între directoare remote
+\end{itemize}
+
+\subsection{Transfer management}
+
+\textit{[PLANNED]}
+
+\begin{itemize}
+    \item Coadă de transferuri cu prioritizare
+    \item Pause/Resume pentru transferuri mari
+    \item Retry automat pentru transferuri eșuate
+    \item Bandwidth limiting
+\end{itemize}
+
+\section{Sistemul de file locking}
+
+\textit{[PLANNED - Funcționalitate core în dezvoltare]}
+
+\subsection{Arhitectura file locking}
+
+Sistemul de file locking va implementa:
+
+\begin{itemize}
+    \item \textbf{Optimistic locking} - Verificare înainte de salvare
+    \item \textbf{Lock acquisition} - Request lock înainte de editare
+    \item \textbf{Heartbeat mechanism} - Keep-alive pentru lock-uri active
+    \item \textbf{Auto-release} - Eliberare automată la timeout sau disconnect
+\end{itemize}
+
+\subsection{Fluxul de lock/unlock}
+
+\begin{enumerate}
+    \item User deschide fișier pentru editare
+    \item Sistem verifică dacă fișierul este deja blocat
+    \item Dacă disponibil:
+        \begin{itemize}
+            \item Creează lock în baza de date
+            \item Notifică alți utilizatori conectați
+            \item Pornește heartbeat timer
+        \end{itemize}
+    \item La salvare/închidere:
+        \begin{itemize}
+            \item Eliberează lock-ul
+            \item Notifică disponibilitatea fișierului
+        \end{itemize}
+\end{enumerate}
+
+\subsection{Gestionarea conflictelor}
+
+\textit{Strategii pentru situații speciale:}
+
+\begin{itemize}
+    \item Lock-uri abandonate (user offline)
+    \item Force unlock de către administrator
+    \item Reconciliation pentru editări concurente accidentale
+\end{itemize}
+
+\section{Notificări și comunicare în timp real}
+
+\textit{[PLANNED]}
+
+\subsection{WebSocket pentru real-time updates}
+
+Sistemul de notificări va folosi WebSocket pentru:
+\begin{itemize}
+    \item Notificări când un fișier este blocat/deblocat
+    \item Actualizări la modificări în directoare monitorizate
+    \item Prezența utilizatorilor (cine este online)
+\end{itemize}
+
+\subsection{Tipuri de notificări}
+
+\begin{enumerate}
+    \item \textbf{File events} - Lock, unlock, modify, delete
+    \item \textbf{User events} - Login, logout, activity
+    \item \textbf{System events} - Connection lost, reconnected
+\end{enumerate}
+
+\section{Securitatea implementării}
+
+\subsection{Criptarea credențialelor}
+
+Implementare actuală:
+
+\begin{itemize}
+    \item Master key derivat din parola utilizatorului
+    \item Salt unic per utilizator
+    \item AES-256-GCM pentru criptarea credențialelor SSH
+    \item Argon2id pentru hashing-ul parolelor (upgrade de la bcrypt - planned)
+\end{itemize}
+
+\subsection{Validarea și sanitizarea input-urilor}
+
+\textit{[IN PROGRESS]}
+
+Măsuri de securitate:
+\begin{itemize}
+    \item Validare strictă pe backend pentru toate input-urile
+    \item Sanitizare path-uri pentru prevenirea path traversal
+    \item Limitare rate pentru prevenirea brute force
+    \item SQL injection prevention prin prepared statements (SQLx)
+\end{itemize}
+
+\section{Testare și debugging}
+
+\subsection{Unit testing}
+
+\textit{[PLANNED]}
+
+Strategia de testare va include:
+\begin{itemize}
+    \item Unit tests pentru logica Rust (cargo test)
+    \item Component tests pentru React (Jest, React Testing Library)
+    \item Integration tests pentru Tauri commands
+\end{itemize}
+
+\subsection{End-to-end testing}
+
+\textit{[PLANNED]}
+
+\begin{itemize}
+    \item Playwright pentru E2E tests
+    \item Mock SSH server pentru testare
+    \item Automated UI testing
+\end{itemize}
+
+\section{Optimizări de performanță}
+
+\subsection{Frontend optimizations}
+
+\textit{[PLANNED]}
+
+\begin{itemize}
+    \item Code splitting și lazy loading
+    \item Memoization pentru componente costisitoare
+    \item Virtual scrolling pentru liste mari de fișiere
+\end{itemize}
+
+\subsection{Backend optimizations}
+
+\textit{[PLANNED]}
+
+\begin{itemize}
+    \item Connection pooling pentru SSH
+    \item Async I/O cu Tokio
+    \item Caching pentru operațiuni repetitive
+\end{itemize}
+
+\section{Concluzii parțiale}
+
+Implementarea platformei LiveCode este în curs de desfășurare, cu focus actual pe sistemul de autentificare și infrastructura de bază. Capitolele următoare ale documentației vor fi actualizate progresiv pe măsură ce funcționalitățile sunt finalizate și testate.
+
+Următorul capitol va prezenta exemple concrete de utilizare ale funcționalităților deja implementate.
+
+\newpage
