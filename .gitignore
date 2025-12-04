@@ -1,24 +1,151 @@
+# ============================================
+# LiveCode Monorepo - Root .gitignore
+# ============================================
+
+# ============================================
+# Environment Variables
+# ============================================
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+
+# ============================================
+# IDEs and Editors
+# ============================================
+# VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/tasks.json
+!.vscode/launch.json
+
+# IntelliJ / JetBrains
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Vim
+*.swp
+*.swo
+*.swn
+*~
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# ============================================
+# Operating Systems
+# ============================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# ============================================
 # Logs
-logs
+# ============================================
 *.log
+logs/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# ============================================
+# Temporary Files
+# ============================================
+*.tmp
+*.temp
+*.bak
+*.backup
+*.old
+nul
+NUL
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+# ============================================
+# Database Files (local development)
+# ============================================
+*.db
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
+
+# ============================================
+# Desktop App (Tauri + React + Rust)
+# ============================================
+# Node.js
+desktop-app/node_modules/
+desktop-app/dist/
+desktop-app/dist-ssr/
+desktop-app/.vite/
+
+# Rust / Tauri
+desktop-app/src-tauri/target/
+desktop-app/src-tauri/gen/
+desktop-app/src-tauri/Cargo.lock
+
+# ============================================
+# Backend API (Go)
+# ============================================
+# Go binaries
+backend-api/*.exe
+backend-api/*.exe~
+backend-api/*.dll
+backend-api/*.so
+backend-api/*.dylib
+backend-api/*.test
+
+# Go build output
+backend-api/bin/
+backend-api/dist/
+backend-api/build/
+
+# Go vendor (opțional - dacă folosești)
+backend-api/vendor/
+
+# Go workspace
+backend-api/go.work
+backend-api/go.work.sum
+
+# ============================================
+# Documentation (optional - dacă vrei să păstrezi local)
+# ============================================
+# Uncomment if you don't want to commit PDFs/LaTeX outputs
+# .documentation_resources/
+
+# ============================================
+# CI/CD artifacts
+# ============================================
+coverage/
+.coverage
+*.cover
+.cache
+
+# ============================================
+# Secrets and Certificates
+# ============================================
+*.pem
+*.key
+*.crt
+*.p12
+secrets/

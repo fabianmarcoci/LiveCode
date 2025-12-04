@@ -1,0 +1,35 @@
+{
+  "folders": [
+    {
+      "path": ".",
+      "name": "📁 Root"
+    },
+    {
+      "path": "desktop-app",
+      "name": "🖥️ Desktop App"
+    },
+    {
+      "path": "backend-api",
+      "name": "☁️ Backend API"
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "desktop-app": true,
+      "backend-api": true,
+      "**/node_modules": true,
+      "**/target": true,
+      "**/.git": true
+    },
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/target": true,
+      "**/vendor": true
+    },
+    "editor.formatOnSave": true,
+    "files.associations": {
+      "*.go": "go",
+      "*.rs": "rust"
+    }
+  }
+}
