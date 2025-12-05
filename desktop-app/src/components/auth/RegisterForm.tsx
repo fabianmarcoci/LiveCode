@@ -96,6 +96,11 @@ export default function RegisterForm({ onClose }: RegisterFormProps) {
             newErrors[field] = message;
           });
           setErrors((prev) => ({ ...prev, ...newErrors }));
+        } else {
+          setErrors((prev) => ({
+            ...prev,
+            general: response.message,
+          }));
         }
 
         setIsSubmitting(false);
@@ -309,7 +314,10 @@ export default function RegisterForm({ onClose }: RegisterFormProps) {
 
               // Revalidate confirm password if it has a value
               if (confirmPassword) {
-                const confirmMsg = validateConfirmPasswordValue(value, confirmPassword);
+                const confirmMsg = validateConfirmPasswordValue(
+                  value,
+                  confirmPassword
+                );
                 setErrors((prev) => ({ ...prev, confirmPassword: confirmMsg }));
               }
             }}
@@ -403,7 +411,9 @@ export default function RegisterForm({ onClose }: RegisterFormProps) {
         {isSubmitting ? <div className="spinner"></div> : "Create Account"}
       </button>
       {successMessage && <p className="success-text">{successMessage}</p>}
-      {errors.general && <p className="error-text-centered">{errors.general}</p>}
+      {errors.general && (
+        <p className="error-text-centered">{errors.general}</p>
+      )}
     </div>
   );
 }

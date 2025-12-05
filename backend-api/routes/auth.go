@@ -26,7 +26,7 @@ func Register(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.RegisterResponse{
 			Success: false,
-			Message: err.Error(),
+			Message: "An unexpected error occurred. Please try again.",
 		})
 		return
 	}
@@ -56,4 +56,28 @@ func CheckFieldAvailable(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"available": available})
+}
+
+func Login(c *gin.Context) {
+	var req models.LoginRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, models.LoginResponse{
+			Success: false,
+			Message: "An unexpected error occurred. Please try again.",
+		})
+		return
+	}
+
+	response, err := handlers.LoginUserInternal(req, database.DB)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.LoginResponse{
+			Success: false,
+			Message: "An unexpected error occurred. Please try again.",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, response)
 }

@@ -2,6 +2,7 @@ import "./App.css";
 import { useEffect, useState, useRef } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import RegisterForm from "./components/auth/RegisterForm";
+import LoginForm from "./components/auth/LoginForm";
 
 const appWindow = getCurrentWindow();
 
@@ -248,6 +249,9 @@ function App() {
           <div className="auth-panel-body">
             {authPanelType === "register" && (
               <RegisterForm onClose={() => setAuthPanelType(null)} />
+            )}
+            {authPanelType === "login" && (
+              <LoginForm onClose={() => setAuthPanelType(null)} />
             )}
           </div>
         </div>

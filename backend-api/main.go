@@ -69,6 +69,7 @@ func setupRouter() *gin.Engine {
 	authRoutes := router.Group("/api/auth")
 	{
 		authRoutes.POST("/register", routes.Register)
+		authRoutes.POST("/login", routes.Login)
 		authRoutes.GET("/check-field", routes.CheckFieldAvailable)
 	}
 

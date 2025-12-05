@@ -35,3 +35,16 @@ type UserData struct {
 	Username string `json:"username"`
 	Email    string `json:"email"`
 }
+
+type LoginRequest struct {
+	Identifier string `json:"identifier" binding:"required"`
+	Password   string `json:"password" binding:"required"`
+}
+
+type LoginResponse struct {
+	Success      bool      `json:"success"`
+	Message      string    `json:"message"`
+	AccessToken  string    `json:"access_token,omitempty"`
+	RefreshToken string    `json:"refresh_token,omitempty"`
+	User         *UserData `json:"user,omitempty"`
+}

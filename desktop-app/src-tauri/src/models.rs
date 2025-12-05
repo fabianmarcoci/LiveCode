@@ -29,3 +29,21 @@ pub struct UserData {
     pub username: String,
     pub email: String,
 }
+
+#[derive(Serialize, Deserialize)]
+pub struct LoginRequest {
+    pub identifier: String,
+    pub password: String,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct LoginResponse {
+    pub success: bool,
+    pub message: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub access_token: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub refresh_token: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub user: Option<UserData>,
+}

@@ -60,3 +60,8 @@ func VerifyPassword(encodedHash, password string) (bool, error) {
 
 	return false, nil
 }
+
+func CheckPasswordHash(password, encodedHash string) bool {
+	match, _ := VerifyPassword(encodedHash, password)
+	return match
+}
