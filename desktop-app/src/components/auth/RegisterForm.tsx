@@ -72,7 +72,7 @@ export default function RegisterForm({ onClose }: RegisterFormProps) {
     try {
       const response = await invoke<{
         success: boolean;
-        field_errors?: Array<[string, string]>;
+        field_errors?: Array<{ field: string; message: string }>;
         message: string;
       }>("register_user", {
         payload: {
@@ -92,8 +92,8 @@ export default function RegisterForm({ onClose }: RegisterFormProps) {
       } else {
         if (response.field_errors) {
           const newErrors: any = {};
-          response.field_errors.forEach(([field, error]) => {
-            newErrors[field] = error;
+          response.field_errors.forEach(({ field, message }) => {
+            newErrors[field] = message;
           });
           setErrors((prev) => ({ ...prev, ...newErrors }));
         }
@@ -306,6 +306,12 @@ export default function RegisterForm({ onClose }: RegisterFormProps) {
               } else {
                 setPasswordStrength("weak");
               }
+
+              // Revalidate confirm password if it has a value
+              if (confirmPassword) {
+                const confirmMsg = validateConfirmPasswordValue(value, confirmPassword);
+                setErrors((prev) => ({ ...prev, confirmPassword: confirmMsg }));
+              }
             }}
             onBlur={() => {
               const msg = validatePasswordValue(password);
@@ -397,7 +403,7 @@ export default function RegisterForm({ onClose }: RegisterFormProps) {
         {isSubmitting ? <div className="spinner"></div> : "Create Account"}
       </button>
       {successMessage && <p className="success-text">{successMessage}</p>}
-      {errors.general && <p className="error-text">{errors.general}</p>}
+      {errors.general && <p className="error-text-centered">{errors.general}</p>}
     </div>
   );
 }

@@ -402,6 +402,16 @@ main {
   opacity: 0.9;
 }
 
+.error-text-centered {
+  color: var(--error-text);
+  font-size: 13px;
+  margin-top: -6px;
+  margin-bottom: 0px;
+  line-height: 1.2;
+  opacity: 0.9;
+  text-align: center;
+}
+
 .password-strength {
   font-size: 13px;
   margin-top: -6px;

@@ -1,0 +1,19 @@
+// Create revertable migrations
+sqlx migrate add -r name_of_migration (Rust)
+migrate create -ext sql -dir migrations -seq name_of_migration (Go)
+// Latex
+pdflatex main.tex
+bibtex main
+pdflatex main.tex
+pdflatex main.tex
+
+// Run code
+go run main.go (backend-api)
+npm run tauri dev (tauri app)
+
+// Build
+npm run tauri build (tauri app -> .exe)
+
+// Run tests
+cargo test (Rust)
+go test <relative_path> -v -run <function_name> (must name the file <name>_test.go)

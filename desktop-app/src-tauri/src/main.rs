@@ -1,23 +1,14 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 mod commands;
+mod models;
 
-use dotenvy::dotenv;
-use tauri::Manager;
-
-use commands::{register_user, check_email_available, check_username_available};
-use live_code_lib::{adjust_window_size, init_db};
+use commands::{check_email_available, check_username_available, register_user};
+use live_code_lib::adjust_window_size;
 
 fn main() {
-    dotenv().ok();
     tauri::Builder::default()
         .setup(|app| {
-            tauri::async_runtime::block_on(async {
-                let pool = init_db().await;
-                app.manage(pool);
-            });
-
             adjust_window_size(app);
-
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
