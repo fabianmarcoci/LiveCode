@@ -228,6 +228,83 @@ main {
   background: var(--menu-btn-hover);
 }
 
+.user-btn {
+  background: transparent;
+  color: var(--dropdown-text);
+  border: 2px solid transparent;
+  padding: 6px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+  transition: 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.user-btn:hover,
+.user-btn.active {
+  background: var(--titlebar-bg);
+  border: 2px solid var(--menu-btn-active);
+}
+
+.user-bracket {
+  color: var(--titlebar-text);
+  font-weight: 700;
+  font-size: 16px;
+  transform: translateY(1px);
+}
+
+.user-name {
+  color: var(--dropdown-text);
+  font-weight: 600;
+}
+
+.user-dropdown {
+  position: absolute;
+  top: 34px;
+  left: 50%;
+  transform: translateX(-50%);
+
+  background: var(--titlebar-bg);
+  border: 2px solid var(--menu-btn-active);
+  padding: 8px;
+  border-radius: 8px;
+
+  min-width: 140px;
+  display: flex;
+  flex-direction: column;
+
+  z-index: 999;
+  -webkit-app-region: no-drag;
+}
+
+.user-menu-item {
+  background: var(--titlebar-bg);
+  border: 1px solid var(--menu-btn-active);
+  border-radius: 6px;
+
+  padding: 10px 18px;
+  text-align: center;
+
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--menu-btn-text);
+
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.user-menu-item:hover {
+  background: var(--menu-btn-hover);
+}
+
+.user-menu-item.logout {
+  color: var(--error-text);
+}
+
 
 .titlebar-buttons {
   display: flex;

@@ -1,10 +1,16 @@
 import "./App.css";
 import { useEffect, useState, useRef } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { invoke } from "@tauri-apps/api/core";
 import RegisterForm from "./components/auth/RegisterForm";
 import LoginForm from "./components/auth/LoginForm";
 
 const appWindow = getCurrentWindow();
+
+interface User {
+  username: string;
+  email: string;
+}
 
 function App() {
   const [isMaximized, setIsMaximized] = useState(false);
@@ -16,10 +22,37 @@ function App() {
   const [authPanelType, setAuthPanelType] = useState<
     "register" | "login" | null
   >(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   const viewRef = useRef<HTMLDivElement | null>(null);
   const optionsRef = useRef<HTMLDivElement | null>(null);
   const authRef = useRef<HTMLDivElement | null>(null);
+  const userMenuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        const token = await invoke<string | null>("get_access_token");
+
+        if (token) {
+          const userData = await invoke<User | null>("get_user_profile", { token });
+
+          if (userData) {
+            setCurrentUser({
+              username: userData.username,
+              email: userData.email,
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Auth check failed:", error);
+      }
+    }
+
+    checkAuth();
+  }, []);
+
   // Maximize button
   useEffect(() => {
     const appWindow = getCurrentWindow();
@@ -57,18 +90,20 @@ function App() {
       const insideView = viewRef.current?.contains(target);
       const insideOptions = optionsRef.current?.contains(target);
       const insideAuth = authRef.current?.contains(target);
+      const insideUserMenu = userMenuRef.current?.contains(target);
 
       const clickedMenuButton = (target as HTMLElement).closest(
-        ".menu-btn, .auth-btn"
+        ".menu-btn, .auth-btn, .user-btn"
       );
 
-      if (insideView || insideOptions || insideAuth || clickedMenuButton) {
+      if (insideView || insideOptions || insideAuth || insideUserMenu || clickedMenuButton) {
         return;
       }
 
       setShowViewMenu(false);
       setShowOptionsMenu(false);
       setShowAuthMenu(false);
+      setShowUserMenu(false);
     }
 
     window.addEventListener("click", handleClickOutside);
@@ -167,39 +202,77 @@ function App() {
 
         <div className="titlebar-center" data-tauri-drag-region={false}>
           <div className="auth-wrapper">
-            <button
-              className={`signin-btn auth-btn ${showAuthMenu ? "active" : ""}`}
-              onClick={() => {
-                setShowViewMenu(false);
-                setShowOptionsMenu(false);
-                setShowAuthMenu((prev) => !prev);
-              }}
-            >
-              Sign In
-            </button>
-
-            {showAuthMenu && (
-              <div className="auth-dropdown" ref={authRef}>
+            {!currentUser ? (
+              <>
                 <button
-                  className="auth-item auth-register"
+                  className={`signin-btn auth-btn ${showAuthMenu ? "active" : ""}`}
                   onClick={() => {
-                    setShowAuthMenu(false);
-                    setAuthPanelType("register");
+                    setShowViewMenu(false);
+                    setShowOptionsMenu(false);
+                    setShowAuthMenu((prev) => !prev);
                   }}
                 >
-                  Register
+                  Sign In
                 </button>
 
+                {showAuthMenu && (
+                  <div className="auth-dropdown" ref={authRef}>
+                    <button
+                      className="auth-item auth-register"
+                      onClick={() => {
+                        setShowAuthMenu(false);
+                        setAuthPanelType("register");
+                      }}
+                    >
+                      Register
+                    </button>
+
+                    <button
+                      className="auth-item auth-login"
+                      onClick={() => {
+                        setShowAuthMenu(false);
+                        setAuthPanelType("login");
+                      }}
+                    >
+                      Log In
+                    </button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
                 <button
-                  className="auth-item auth-login"
+                  className={`user-btn ${showUserMenu ? "active" : ""}`}
                   onClick={() => {
-                    setShowAuthMenu(false);
-                    setAuthPanelType("login");
+                    setShowViewMenu(false);
+                    setShowOptionsMenu(false);
+                    setShowUserMenu((prev) => !prev);
                   }}
                 >
-                  Log In
+                  <span className="user-bracket">&lt;</span>
+                  <span className="user-name">{currentUser.username}</span>
+                  <span className="user-bracket">&gt;</span>
                 </button>
-              </div>
+
+                {showUserMenu && (
+                  <div className="user-dropdown" ref={userMenuRef}>
+                    <button
+                      className="user-menu-item logout"
+                      onClick={async () => {
+                        try {
+                          await invoke("clear_tokens");
+                          setCurrentUser(null);
+                          setShowUserMenu(false);
+                        } catch (error) {
+                          console.error("Logout failed:", error);
+                        }
+                      }}
+                    >
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -248,10 +321,20 @@ function App() {
 
           <div className="auth-panel-body">
             {authPanelType === "register" && (
-              <RegisterForm onClose={() => setAuthPanelType(null)} />
+              <RegisterForm
+                onClose={() => setAuthPanelType(null)}
+                onRegisterSuccess={(username: string, email: string) => {
+                  setCurrentUser({ username, email });
+                }}
+              />
             )}
             {authPanelType === "login" && (
-              <LoginForm onClose={() => setAuthPanelType(null)} />
+              <LoginForm
+                onClose={() => setAuthPanelType(null)}
+                onLoginSuccess={(username: string, email: string) => {
+                  setCurrentUser({ username, email });
+                }}
+              />
             )}
           </div>
         </div>

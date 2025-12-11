@@ -11,7 +11,11 @@ impl ApiConfig {
     }
 
     pub fn auth_url(&self, endpoint: &str) -> String {
-        format!("{}/api/auth/{}", self.base_url, endpoint)
+        format!("{}/api/v1/auth/{}", self.base_url, endpoint)
+    }
+
+    pub fn api_url(&self, endpoint: &str) -> String {
+        format!("{}/api/v1/{}", self.base_url, endpoint)
     }
 }
 

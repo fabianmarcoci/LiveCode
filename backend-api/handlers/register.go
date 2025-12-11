@@ -94,9 +94,16 @@ func RegisterUserInternal(payload models.RegisterRequest, db *sql.DB) (models.Re
 		return models.RegisterResponse{}, errors.New("an unexpected error occurred. Please try again")
 	}
 
+	tokens, err := utils.GenerateTokenPair(userID, payload.Username, payload.Email)
+	if err != nil {
+		return models.RegisterResponse{}, err
+	}
+
 	return models.RegisterResponse{
-		Success: true,
-		Message: "Your account has been created successfully.",
+		Success:      true,
+		Message:      "Your account has been created successfully.",
+		AccessToken:  &tokens.AccessToken,
+		RefreshToken: &tokens.RefreshToken,
 		User: &models.UserData{
 			ID:       userID,
 			Username: payload.Username,

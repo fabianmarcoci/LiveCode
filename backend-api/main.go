@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"livecode-api/database"
+	"livecode-api/middleware"
 	"livecode-api/routes"
 
 	"github.com/gin-gonic/gin"
@@ -64,13 +65,28 @@ func loadConfig() *Config {
 func setupRouter() *gin.Engine {
 	router := gin.Default()
 
+	authLimiter := middleware.NewRateLimiter(5, 5)
+	checkFieldLimiter := middleware.NewRateLimiter(10, 10)
+	generalLimiter := middleware.NewRateLimiter(50, 10)
+
 	router.GET("/health", healthCheck)
 
-	authRoutes := router.Group("/api/auth")
+	v1 := router.Group("/api/v1")
+	v1.Use(generalLimiter.Limit())
 	{
-		authRoutes.POST("/register", routes.Register)
-		authRoutes.POST("/login", routes.Login)
-		authRoutes.GET("/check-field", routes.CheckFieldAvailable)
+		authRoutes := v1.Group("/auth")
+		{
+			authRoutes.POST("/refresh", routes.RefreshToken)
+			authRoutes.POST("/register", authLimiter.Limit(), middleware.ValidateRegisterInput(), routes.Register)
+			authRoutes.POST("/login", authLimiter.Limit(), middleware.ValidateLoginInput(), routes.Login)
+			authRoutes.GET("/check-field", checkFieldLimiter.Limit(), routes.CheckFieldAvailable)
+		}
+
+		protectedRoutes := v1.Group("")
+		protectedRoutes.Use(middleware.AuthMiddleware())
+		{
+			protectedRoutes.GET("/profile", routes.GetProfile)
+		}
 	}
 
 	return router

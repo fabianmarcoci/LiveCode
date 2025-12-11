@@ -19,10 +19,12 @@ type RegisterRequest struct {
 }
 
 type RegisterResponse struct {
-	Success     bool         `json:"success"`
-	FieldErrors []FieldError `json:"field_errors,omitempty"`
-	Message     string       `json:"message"`
-	User        *UserData    `json:"user,omitempty"`
+	Success      bool         `json:"success"`
+	FieldErrors  []FieldError `json:"field_errors,omitempty"`
+	Message      string       `json:"message"`
+	AccessToken  *string      `json:"access_token,omitempty"`
+	RefreshToken *string      `json:"refresh_token,omitempty"`
+	User         *UserData    `json:"user,omitempty"`
 }
 
 type FieldError struct {

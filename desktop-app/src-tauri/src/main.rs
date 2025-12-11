@@ -3,7 +3,7 @@ mod auth;
 mod models;
 mod storage;
 
-use auth::{check_email_available, check_username_available, login_user, register_user};
+use auth::{check_email_available, check_username_available, get_user_profile, login_user, register_user};
 use live_code_lib::adjust_window_size;
 use storage::{clear_tokens, get_access_token, get_refresh_token, save_tokens};
 
@@ -19,6 +19,7 @@ fn main() {
             login_user,
             check_email_available,
             check_username_available,
+            get_user_profile,
             save_tokens,
             get_access_token,
             get_refresh_token,

@@ -1,4 +1,4 @@
-use crate::models::{LoginRequest, LoginResponse, RegisterRequest, RegisterResponse};
+use crate::models::{LoginRequest, LoginResponse, RegisterRequest, RegisterResponse, UserData};
 use live_code_lib::config::ApiConfig;
 use serde::Deserialize;
 
@@ -92,4 +92,35 @@ pub async fn login_user(payload: LoginRequest) -> Result<LoginResponse, String> 
     let data: LoginResponse = response.json().await.map_err(|e| e.to_string())?;
 
     Ok(data)
+}
+
+#[tauri::command]
+pub async fn get_user_profile(token: String) -> Result<Option<UserData>, String> {
+    let config = ApiConfig::new();
+    let client = reqwest::Client::new();
+
+    let response = client
+        .get(config.api_url("profile"))
+        .header("Authorization", format!("Bearer {}", token))
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    if !response.status().is_success() {
+        return Ok(None);
+    }
+
+    #[derive(Deserialize)]
+    struct ProfileResponse {
+        success: bool,
+        user: Option<UserData>,
+    }
+
+    let data: ProfileResponse = response.json().await.map_err(|e| e.to_string())?;
+
+    if data.success {
+        Ok(data.user)
+    } else {
+        Ok(None)
+    }
 }

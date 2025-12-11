@@ -1,145 +1,193 @@
-# LiveCode TODO List
+# LiveCode Authentication - Professional Implementation Plan
 
-## 🎯 Current Sprint: AI Setup + Auth Completion
+## FASE 1: FUNDAȚIE (Current Focus)
 
-### Priority 1: AI & Development Setup
-- [x] Create `.claude/` folder structure
-- [x] Write project-context.md
-- [x] Write rules.md
-- [x] Write todo.md
-- [x] Write architecture.md
-- [x] Add CRITICAL rules for TODO/docs updates
-- [ ] Test context persistence (new conversation)
-- [ ] Setup thesis documentation (LaTeX) - waiting for PDF guidelines
+### 1.1 API Versionare ✅
 
-### Priority 2: Complete Authentication System
-- [ ] **Password Security**
-  - [ ] Research bcrypt vs argon2 for Rust
-  - [ ] Add password hashing dependency
-  - [ ] Implement hash_password() function
-  - [ ] Implement verify_password() function
+- [x] Adaugă `/api/v1` prefix în main.go
+- [x] Update config.rs cu auth_url() și api_url()
+- [x] Test versionare cu curl
 
-- [ ] **Backend - Register**
-  - [ ] Uncomment password hashing in register handler
-  - [ ] Implement user insertion into DB
-  - [ ] Add proper error handling
-  - [ ] Register auth commands in main.rs
-  - [ ] Test with Postman/curl
+### 1.2 Refresh Token Logic
 
-- [ ] **Frontend - Register**
-  - [ ] Replace mock setTimeout with actual Tauri invoke
-  - [ ] Handle backend errors properly
-  - [ ] Add network error handling
-  - [ ] Test full registration flow
+- [ ] Backend: Creează endpoint POST /api/v1/auth/refresh
+- [ ] Backend: Implementează verificare refresh token
+- [ ] Backend: Generare nou access token
+- [ ] Rust: Adaugă refresh_token command în auth.rs
+- [ ] Frontend: Auto-refresh logic (retry request la 401)
+- [ ] Test: Token expirat → refresh → success
 
-- [ ] **Login Implementation**
-  - [ ] Design login UI (LoginForm.tsx)
-  - [ ] Implement login backend handler
-  - [ ] Add session management (decide: JWT, cookies, etc.)
-  - [ ] Connect frontend to backend
-  - [ ] Test login flow
+### 1.3 Role-Based Access Control (RBAC)
 
-- [ ] **Session Management**
-  - [ ] Research session strategies (JWT vs server-side)
-  - [ ] Implement chosen strategy
-  - [ ] Add logout functionality
-  - [ ] Persist auth state across app restarts
+- [ ] Database: Adaugă coloană `role` în users table (DEFAULT 'user')
+- [ ] Backend: Include `role` în JWT claims la login
+- [ ] Backend: Creează middleware/rbac.go cu RequireRole()
+- [ ] Backend: Protejează /health cu RequireRole("admin")
+- [ ] Test: User normal → 403 Forbidden
+- [ ] Test: Admin user → 200 OK
 
-### Priority 3: Project Architecture Improvements
-- [ ] **Database**
-  - [ ] Review schema design with Claude
-  - [ ] Plan future tables (projects, connections, sessions)
-  - [ ] Add indexes for performance
-  - [ ] Implement updated_at auto-trigger
+### 1.4 Protected Routes (Exemplu: Submit Code)
 
-- [ ] **Code Structure**
-  - [ ] Review Rust module organization
-  - [ ] Separate concerns (handlers, services, models)
-  - [ ] Add proper error types (custom Error enum)
-  - [ ] Implement logging (tracing crate?)
+- [ ] Backend: Creează routes/submission.go
+- [ ] Backend: POST /api/v1/submissions (create)
+- [ ] Backend: GET /api/v1/submissions/:id (read)
+- [ ] Database: Creează tabel `submissions`
+- [ ] Rust: Adaugă submit_code command
+- [ ] Frontend: Creează SubmissionForm.tsx
+- [ ] Test: Submit code cu token valid
 
-- [ ] **Security**
-  - [ ] Move .env to .env.example (gitignore .env)
-  - [ ] Add input sanitization
-  - [ ] Review SQL injection protection
-  - [ ] Add rate limiting (future)
+## FAZA 2: SECURITATE & BEST PRACTICES
 
-### Priority 4: Core Features (After Auth)
-- [ ] **Project/Connection Management**
-  - [ ] Design DB schema for projects/connections
-  - [ ] Design UI for project list
-  - [ ] Implement CRUD operations
-  - [ ] Add encryption for stored credentials
+### 2.1 Rate Limiting
 
-- [ ] **SSH/SFTP Integration**
-  - [ ] Research Rust SSH/SFTP crates
-  - [ ] Implement connection testing
-  - [ ] Build file browser backend
-  - [ ] Build file browser UI
+- [ ] Backend: Adaugă middleware rate limiter
+- [ ] Config: Max 100 requests/minute per IP
+- [ ] Test: Depășire limit → 429 Too Many Requests
 
-- [ ] **Real-time Collaboration**
-  - [ ] Design file locking mechanism
-  - [ ] Choose real-time tech (WebSocket, polling)
-  - [ ] Implement backend locking system
-  - [ ] Add visual indicators (red for locked files)
+### 2.2 Request Validation
 
-### Priority 5: DevOps & Deployment
-- [ ] **Docker**
-  - [ ] Learn Docker basics
-  - [ ] Create Dockerfile for app
-  - [ ] Create docker-compose.yml (app + PostgreSQL)
-  - [ ] Test containerized deployment
+- [ ] Backend: Validare max length pentru toate inputs
+- [ ] Backend: Sanitizare input (prevent XSS)
+- [ ] Backend: Validare email format
+- [ ] Backend: Validare password strength
 
-- [ ] **Kubernetes** (Future - Enterprise Level)
-  - [ ] Learn Kubernetes fundamentals
-  - [ ] Create k8s manifests
-  - [ ] Deploy to local cluster (minikube)
-  - [ ] Explore Helm charts
+### 2.3 Error Handling
 
-- [ ] **Testing**
-  - [ ] Add Rust unit tests
-  - [ ] Add integration tests
-  - [ ] Add frontend tests (Vitest?)
+- [ ] Backend: Centralizare error responses
+- [ ] Backend: NU expune internal errors în production
+- [ ] Backend: Logging pentru debugging
+- [ ] Frontend: User-friendly error messages
 
-- [ ] **CI/CD**
-  - [ ] GitHub Actions for tests
-  - [ ] Automated builds
-  - [ ] Release workflow
+### 2.4 CORS Configuration
 
-## 📚 Learning Goals
-- [ ] Understand Rust async/await deeply
-- [ ] Master SQLx compile-time queries
-- [ ] Learn Docker containerization
-- [ ] Explore Kubernetes orchestration
-- [ ] Understand Tauri architecture
-- [ ] Study real-time collaboration patterns
-- [ ] Enterprise-level architecture patterns
+- [ ] Backend: Configurează CORS middleware
+- [ ] Whitelist doar origin-uri known
+- [ ] Test: Cross-origin requests
 
-## 💡 Ideas / Future Features
-- [ ] OAuth integration (Google, GitHub)
-- [ ] Cloud storage integration (S3, GCS)
-- [ ] File editing in-app (code editor)
-- [ ] Terminal integration (SSH shell)
-- [ ] File transfer progress bars
-- [ ] Keyboard shortcuts
-- [ ] Dark/light theme preferences saved
-- [ ] Redis caching layer
-- [ ] Monitoring with Prometheus/Grafana
-- [ ] gRPC for internal services (if microservices)
+## FAZA 3: SCALABILITATE & DEPLOYMENT
 
-## 🐛 Known Issues
-- [ ] Auth handlers not registered (main.rs)
-- [ ] Password hashing not implemented
-- [ ] updated_at field not auto-updating (needs trigger)
-- [ ] LoginForm.tsx empty
-- [ ] Frontend using mock data (not calling backend)
+### 3.1 Dockerization
 
-## ✅ Completed
-- [x] Tauri v2 project setup
-- [x] PostgreSQL database connection
-- [x] SQLx migrations system
-- [x] Users table schema
-- [x] Custom window with titlebar
-- [x] Light/Dark theme toggle
-- [x] Registration form UI with validation
-- [x] Auth backend handlers (code written)
+- [ ] Creează backend-api/Dockerfile
+- [ ] Creează docker-compose.yml
+- [ ] Multi-stage build pentru size optimization
+- [ ] Test: docker-compose up
+
+### 3.2 Nginx Load Balancer
+
+- [ ] Creează nginx.conf
+- [ ] Configurează round-robin între 3 instanțe API
+- [ ] Health checks (ping /health)
+- [ ] Test: Load distribution
+
+### 3.3 Monitoring
+
+- [ ] Prometheus metrics endpoint
+- [ ] Grafana dashboards
+- [ ] Alert rules (high error rate, latency)
+
+### 3.4 Database Optimizations
+
+- [ ] Index pe email și username
+- [ ] Connection pooling tuning
+- [ ] Query performance analysis
+- [ ] Migrations versioning
+
+## FAZA 4: ADVANCED FEATURES
+
+### 4.1 Token Refresh Strategy (Hybrid)
+
+- [ ] Database: refresh_tokens table cu jti
+- [ ] Backend: Whitelist/blacklist pentru revocation
+- [ ] Redis cache pentru fast lookup
+- [ ] Automatic cleanup expired tokens
+
+### 4.2 Multi-Device Support (Enterprise Session Management)
+
+**Database Schema:**
+- [ ] CREATE TABLE sessions (id, user_id, refresh_token_hash, device_name, ip_address, user_agent, last_active, expires_at)
+- [ ] Add indexes on user_id and expires_at
+
+**Backend Implementation:**
+- [ ] Salvează refresh token în sessions (hashed cu SHA-256)
+- [ ] La login: INSERT session în DB, returnează session_id
+- [ ] La refresh: Verifică session în DB, generează access token nou
+- [ ] GET /api/v1/sessions: Lista toate dispozitivele utilizatorului
+- [ ] DELETE /api/v1/sessions/:id: Logout de pe un dispozitiv specific
+- [ ] DELETE /api/v1/sessions/all: Logout all devices (revoke toate sessions)
+
+**Frontend/Rust:**
+- [ ] Salvează session_id în Tauri storage (în loc de refresh_token)
+- [ ] UI: Account Settings → Active Devices
+- [ ] UI: Afișează device_name, last_active, current device indicator
+- [ ] UI: Buton "Logout" per device
+- [ ] UI: Buton "Logout all other devices"
+
+**Security Benefits:**
+- ✅ Revocație instantanee (ștergi session din DB → invalid imediat)
+- ✅ User vede toate dispozitivele logat (transparency)
+- ✅ Refresh token NU e pe client (doar session_id)
+- ✅ Audit trail complet (când, unde, ce device)
+
+### 4.3 OAuth Integration
+
+- [ ] Google OAuth provider
+- [ ] GitHub OAuth provider
+- [ ] Link multiple providers per user
+
+### 4.4 Audit Logging
+
+- [ ] Log toate login attempts
+- [ ] Log toate changes la resources
+- [ ] Admin dashboard pentru audit trail
+
+## BEST PRACTICES CHECKLIST
+
+### Security
+
+- [x] JWT signatures verified
+- [x] Passwords hashed cu Argon2
+- [x] Tokens stored encrypted (Tauri secure storage)
+- [ ] Rate limiting implemented
+- [ ] HTTPS enforced (production)
+- [ ] CORS configured
+- [ ] SQL injection prevented (parameterized queries)
+- [ ] XSS prevented (input sanitization)
+
+### Code Quality
+
+- [x] API versionat (/api/v1)
+- [x] Middleware pattern folosit
+- [x] Error handling consistent
+- [ ] Unit tests (>80% coverage)
+- [ ] Integration tests
+- [ ] Code documentation
+- [ ] Git commit messages descriptive
+
+### System Design
+
+- [x] Stateless API (JWT-based)
+- [ ] Horizontal scaling ready (Docker + LB)
+- [ ] Database indexed
+- [ ] Caching strategy (Redis)
+- [ ] Monitoring & alerting
+- [ ] Graceful shutdown
+- [ ] Health checks
+
+## NEXT IMMEDIATE STEPS
+
+1. **Refresh Token Endpoint** (2-3 ore)
+   - Implementează backend logic
+   - Testează cu curl
+   - Adaugă Rust command
+2. **RBAC Implementation** (1-2 ore)
+
+   - Adaugă role în database
+   - Creează middleware
+   - Testează cu admin/user
+
+3. **Protected Route Exemplu** (2 ore)
+   - Submissions API
+   - Test end-to-end
+
+**Target: Fundație completă în 1-2 zile**

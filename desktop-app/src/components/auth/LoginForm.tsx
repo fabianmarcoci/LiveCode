@@ -1,17 +1,39 @@
 import { invoke } from "@tauri-apps/api/core";
 import { useState } from "react";
 
+const IDENTIFIER_MAX_LENGTH = 255;
+const PASSWORD_MAX_LENGTH = 72;
+
 type LoginFormProps = {
   onClose: () => void;
+  onLoginSuccess: (username: string, email: string) => void;
 };
 
-export default function LoginForm({ onClose }: LoginFormProps) {
+export default function LoginForm({ onClose, onLoginSuccess }: LoginFormProps) {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [shakeField, setShakeField] = useState<string | null>(null);
+  const [tempIdentifierMessage, setTempIdentifierMessage] = useState("");
+  const [tempPasswordMessage, setTempPasswordMessage] = useState("");
+
+  function triggerShake(field: string) {
+    setShakeField(field);
+    setTimeout(() => setShakeField(null), 250);
+  }
+
+  function showIdentifierTemp(msg: string) {
+    setTempIdentifierMessage(msg);
+    setTimeout(() => setTempIdentifierMessage(""), 2000);
+  }
+
+  function showPasswordTemp(msg: string) {
+    setTempPasswordMessage(msg);
+    setTimeout(() => setTempPasswordMessage(""), 2000);
+  }
 
   async function handleSubmit() {
     if (!identifier || !password) {
@@ -50,6 +72,9 @@ export default function LoginForm({ onClose }: LoginFormProps) {
 
         setSuccessMessage(response.message);
         setTimeout(() => {
+          if (response.user) {
+            onLoginSuccess(response.user.username, response.user.email);
+          }
           setIsSubmitting(false);
           setSuccessMessage("");
           onClose();
@@ -84,10 +109,20 @@ export default function LoginForm({ onClose }: LoginFormProps) {
         <input
           disabled={isSubmitting}
           type="text"
-          className="input-field"
+          className={`input-field ${
+            shakeField === "identifier" ? "input-shake input-error" : ""
+          }`}
           value={identifier}
           onChange={(e) => {
-            setIdentifier(e.target.value);
+            const value = e.target.value;
+
+            if (value.length > IDENTIFIER_MAX_LENGTH) {
+              showIdentifierTemp("Email or username cannot exceed 255 characters.");
+              triggerShake("identifier");
+              return;
+            }
+
+            setIdentifier(value);
             if (errorMessage) {
               setErrorMessage("");
             }
@@ -103,10 +138,20 @@ export default function LoginForm({ onClose }: LoginFormProps) {
           <input
             disabled={isSubmitting}
             type={showPassword ? "text" : "password"}
-            className="input-field"
+            className={`input-field ${
+              shakeField === "password" ? "input-shake input-error" : ""
+            }`}
             value={password}
             onChange={(e) => {
-              setPassword(e.target.value);
+              const value = e.target.value;
+
+              if (value.length > PASSWORD_MAX_LENGTH) {
+                showPasswordTemp("Password cannot exceed 72 characters.");
+                triggerShake("password");
+                return;
+              }
+
+              setPassword(value);
               if (errorMessage) {
                 setErrorMessage("");
               }
@@ -120,10 +165,13 @@ export default function LoginForm({ onClose }: LoginFormProps) {
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => setShowPassword((prev) => !prev)}
           >
-            {showPassword ? "#" : "=A"}
+            {showPassword ? "⌣" : "👁"}
           </span>
         </div>
       </label>
+
+      {tempIdentifierMessage && <p className="temp-message">{tempIdentifierMessage}</p>}
+      {tempPasswordMessage && <p className="temp-message">{tempPasswordMessage}</p>}
 
       <button
         className="auth-submit"

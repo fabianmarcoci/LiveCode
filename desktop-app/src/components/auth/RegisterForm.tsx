@@ -11,13 +11,17 @@ import {
 } from "./validators";
 const MAIL_MAX_LENGTH = 254;
 const USERNAME_MAX_LENGTH = 16;
-const PASSWORD_MAX_LENGTH = 128;
+const PASSWORD_MAX_LENGTH = 72;
 
 type RegisterFormProps = {
   onClose: () => void;
+  onRegisterSuccess: (username: string, email: string) => void;
 };
 
-export default function RegisterForm({ onClose }: RegisterFormProps) {
+export default function RegisterForm({
+  onClose,
+  onRegisterSuccess,
+}: RegisterFormProps) {
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("@");
   const [password, setPassword] = useState("");
@@ -74,6 +78,9 @@ export default function RegisterForm({ onClose }: RegisterFormProps) {
         success: boolean;
         field_errors?: Array<{ field: string; message: string }>;
         message: string;
+        access_token?: string;
+        refresh_token?: string;
+        user?: { id: string; username: string; email: string };
       }>("register_user", {
         payload: {
           email: email,
@@ -83,8 +90,18 @@ export default function RegisterForm({ onClose }: RegisterFormProps) {
       });
 
       if (response.success) {
+        if (response.access_token && response.refresh_token) {
+          await invoke("save_tokens", {
+            accessToken: response.access_token,
+            refreshToken: response.refresh_token,
+          });
+        }
+
         setSuccessMessage(response.message);
         setTimeout(() => {
+          if (response.user) {
+            onRegisterSuccess(response.user.username, response.user.email);
+          }
           setIsSubmitting(false);
           setSuccessMessage("");
           onClose();
@@ -295,7 +312,7 @@ export default function RegisterForm({ onClose }: RegisterFormProps) {
               const value = e.target.value;
 
               if (value.length > PASSWORD_MAX_LENGTH) {
-                showPasswordTemp("Password cannot exceed 128 characters.");
+                showPasswordTemp("Password cannot exceed 72 characters.");
                 triggerShake("password");
                 return;
               }
@@ -367,7 +384,7 @@ export default function RegisterForm({ onClose }: RegisterFormProps) {
             const value = e.target.value;
 
             if (value.length > PASSWORD_MAX_LENGTH) {
-              showConfirmTemp("Confirm password cannot exceed 128 characters.");
+              showConfirmTemp("Confirm password cannot exceed 72 characters.");
               triggerShake("confirm");
               return;
             }
