@@ -26,6 +26,8 @@ type Config struct {
 func main() {
 	cfg := loadConfig()
 
+	middleware.InitLogger()
+
 	if err := database.Connect(cfg.DatabaseURL); err != nil {
 		log.Fatal("Database connection failed:", err)
 	}
@@ -65,21 +67,29 @@ func loadConfig() *Config {
 func setupRouter() *gin.Engine {
 	router := gin.Default()
 
+	router.Use(middleware.RequestLogger())
+
+	refreshTokenLimiter := middleware.NewRateLimiter(3, 3)
 	authLimiter := middleware.NewRateLimiter(5, 5)
 	checkFieldLimiter := middleware.NewRateLimiter(10, 10)
-	generalLimiter := middleware.NewRateLimiter(50, 10)
+	clientMonitoringLimiter := middleware.NewRateLimiter(2, 2)
 
 	router.GET("/health", healthCheck)
 
 	v1 := router.Group("/api/v1")
-	v1.Use(generalLimiter.Limit())
 	{
 		authRoutes := v1.Group("/auth")
 		{
-			authRoutes.POST("/refresh", routes.RefreshToken)
+			authRoutes.POST("/refresh", refreshTokenLimiter.Limit(), middleware.ValidateRefreshToken(), routes.RefreshToken)
 			authRoutes.POST("/register", authLimiter.Limit(), middleware.ValidateRegisterInput(), routes.Register)
 			authRoutes.POST("/login", authLimiter.Limit(), middleware.ValidateLoginInput(), routes.Login)
-			authRoutes.GET("/check-field", checkFieldLimiter.Limit(), routes.CheckFieldAvailable)
+			authRoutes.GET("/check-field", checkFieldLimiter.Limit(), middleware.ValidateCheckFieldAvailable(), routes.CheckFieldAvailable)
+		}
+
+		clientMonitoringRoutes := v1.Group("/monitoring")
+		clientMonitoringRoutes.Use(clientMonitoringLimiter.Limit(), middleware.ValidateClientErrorLog())
+		{
+			clientMonitoringRoutes.POST("/client-errors", routes.LogClientError)
 		}
 
 		protectedRoutes := v1.Group("")

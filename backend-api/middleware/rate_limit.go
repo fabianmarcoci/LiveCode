@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"golang.org/x/time/rate"
 )
 
@@ -69,6 +70,11 @@ func (rl *RateLimiter) Limit() gin.HandlerFunc {
 		limiter := rl.getVisitor(ip)
 
 		if !limiter.Allow() {
+			Logger.Warn("rate_limit_exceeded",
+				zap.String("ip", ip),
+				zap.String("path", c.Request.URL.Path),
+				zap.String("method", c.Request.Method),
+			)
 			c.JSON(http.StatusTooManyRequests, gin.H{
 				"success": false,
 				"message": "Rate limit exceeded. Please try again later.",

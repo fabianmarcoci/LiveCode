@@ -10,12 +10,16 @@ import (
 	"github.com/google/uuid"
 )
 
-func CheckFieldAvailableInternal(field string, value string, db *sql.DB) (*bool, error) {
-	if field != "email" && field != "username" {
+func CheckFieldAvailableInternal(field, value string, db *sql.DB) (*bool, error) {
+	var query string
+	switch field {
+	case "email":
+		query = "SELECT id FROM users WHERE email = $1 LIMIT 1"
+	case "username":
+		query = "SELECT id FROM users WHERE username = $1 LIMIT 1"
+	default:
 		return nil, nil
 	}
-
-	query := "SELECT id FROM users WHERE " + field + " = $1 LIMIT 1"
 
 	var id string
 	err := db.QueryRow(query, value).Scan(&id)
@@ -80,7 +84,7 @@ func RegisterUserInternal(payload models.RegisterRequest, db *sql.DB) (models.Re
 
 	passwordHash, err := utils.HashPassword(payload.Password)
 	if err != nil {
-		return models.RegisterResponse{}, errors.New("an unexpected error occurred. Please try again")
+		return models.RegisterResponse{}, errors.New("password hashing failed")
 	}
 
 	userID := uuid.New().String()
@@ -91,7 +95,7 @@ func RegisterUserInternal(payload models.RegisterRequest, db *sql.DB) (models.Re
 	)
 
 	if err != nil {
-		return models.RegisterResponse{}, errors.New("an unexpected error occurred. Please try again")
+		return models.RegisterResponse{}, errors.New("database insert failed")
 	}
 
 	tokens, err := utils.GenerateTokenPair(userID, payload.Username, payload.Email)

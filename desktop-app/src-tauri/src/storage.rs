@@ -1,3 +1,4 @@
+use live_code_lib::errors::storage_error_to_string;
 use tauri::AppHandle;
 use tauri_plugin_store::StoreExt;
 
@@ -11,19 +12,19 @@ pub async fn save_tokens(
     access_token: String,
     refresh_token: String,
 ) -> Result<(), String> {
-    let store = app.store(STORE_FILE).map_err(|e| e.to_string())?;
+    let store = app.store(STORE_FILE).map_err(storage_error_to_string)?;
 
     store.set(ACCESS_TOKEN_KEY, serde_json::json!(access_token));
     store.set(REFRESH_TOKEN_KEY, serde_json::json!(refresh_token));
 
-    store.save().map_err(|e| e.to_string())?;
+    store.save().map_err(storage_error_to_string)?;
 
     Ok(())
 }
 
 #[tauri::command]
 pub async fn get_access_token(app: AppHandle) -> Result<Option<String>, String> {
-    let store = app.store(STORE_FILE).map_err(|e| e.to_string())?;
+    let store = app.store(STORE_FILE).map_err(storage_error_to_string)?;
 
     match store.get(ACCESS_TOKEN_KEY) {
         Some(value) => {
@@ -36,7 +37,7 @@ pub async fn get_access_token(app: AppHandle) -> Result<Option<String>, String> 
 
 #[tauri::command]
 pub async fn get_refresh_token(app: AppHandle) -> Result<Option<String>, String> {
-    let store = app.store(STORE_FILE).map_err(|e| e.to_string())?;
+    let store = app.store(STORE_FILE).map_err(storage_error_to_string)?;
 
     match store.get(REFRESH_TOKEN_KEY) {
         Some(value) => {
@@ -49,12 +50,12 @@ pub async fn get_refresh_token(app: AppHandle) -> Result<Option<String>, String>
 
 #[tauri::command]
 pub async fn clear_tokens(app: AppHandle) -> Result<(), String> {
-    let store = app.store(STORE_FILE).map_err(|e| e.to_string())?;
+    let store = app.store(STORE_FILE).map_err(storage_error_to_string)?;
 
     store.delete(ACCESS_TOKEN_KEY);
     store.delete(REFRESH_TOKEN_KEY);
 
-    store.save().map_err(|e| e.to_string())?;
+    store.save().map_err(storage_error_to_string)?;
 
     Ok(())
 }

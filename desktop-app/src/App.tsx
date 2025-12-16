@@ -36,7 +36,9 @@ function App() {
         const token = await invoke<string | null>("get_access_token");
 
         if (token) {
-          const userData = await invoke<User | null>("get_user_profile", { token });
+          const userData = await invoke<User | null>("get_user_profile", {
+            token,
+          });
 
           if (userData) {
             setCurrentUser({
@@ -96,7 +98,13 @@ function App() {
         ".menu-btn, .auth-btn, .user-btn"
       );
 
-      if (insideView || insideOptions || insideAuth || insideUserMenu || clickedMenuButton) {
+      if (
+        insideView ||
+        insideOptions ||
+        insideAuth ||
+        insideUserMenu ||
+        clickedMenuButton
+      ) {
         return;
       }
 
@@ -205,7 +213,9 @@ function App() {
             {!currentUser ? (
               <>
                 <button
-                  className={`signin-btn auth-btn ${showAuthMenu ? "active" : ""}`}
+                  className={`signin-btn auth-btn ${
+                    showAuthMenu ? "active" : ""
+                  }`}
                   onClick={() => {
                     setShowViewMenu(false);
                     setShowOptionsMenu(false);
@@ -265,6 +275,11 @@ function App() {
                           setShowUserMenu(false);
                         } catch (error) {
                           console.error("Logout failed:", error);
+                          const errorMsg =
+                            typeof error === "string"
+                              ? error
+                              : "Failed to logout. Please try again.";
+                          alert(errorMsg);
                         }
                       }}
                     >

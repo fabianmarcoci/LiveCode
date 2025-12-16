@@ -179,7 +179,13 @@ export default function RegisterForm({
           }));
         }
       })
-      .catch((err) => console.error("Check email failed:", err));
+      .catch((err) => {
+        console.error("Check email failed:", err);
+        setErrors((prev) => ({
+          ...prev,
+          email: "Could not verify email. Please try again.",
+        }));
+      });
   }, [debouncedEmail]);
 
   useEffect(() => {
@@ -198,7 +204,13 @@ export default function RegisterForm({
           }));
         }
       })
-      .catch((err) => console.error("Check username failed:", err));
+      .catch((err) => {
+        console.error("Check username failed:", err);
+        setErrors((prev) => ({
+          ...prev,
+          username: "Could not verify username. Please try again.",
+        }));
+      });
   }, [debouncedUsername]);
 
   return (
@@ -232,7 +244,10 @@ export default function RegisterForm({
             const normalized = email.trim().toLowerCase();
             setEmail(normalized);
 
-            if (errors.email !== "This email is already taken.") {
+            if (
+              errors.email !== "This email is already taken." &&
+              errors.email !== "Could not verify email. Please try again."
+            ) {
               const msg = validateEmailValue(normalized);
               setErrors((prev) => ({ ...prev, email: msg }));
             }
@@ -281,7 +296,10 @@ export default function RegisterForm({
             }
           }}
           onBlur={() => {
-            if (errors.username !== "This username is already taken.") {
+            if (
+              errors.username !== "This username is already taken." &&
+              errors.username !== "Could not verify username. Please try again."
+            ) {
               const msg = validateUsernameValue(username);
               setErrors((prev) => ({ ...prev, username: msg }));
             }

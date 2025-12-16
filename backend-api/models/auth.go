@@ -50,3 +50,9 @@ type LoginResponse struct {
 	RefreshToken string    `json:"refresh_token,omitempty"`
 	User         *UserData `json:"user,omitempty"`
 }
+
+type RefreshTokenResponse struct {
+	Success     bool   `json:"success"`
+	Message     string `json:"message"`
+	AccessToken string `json:"access_token,omitempty"`
+}

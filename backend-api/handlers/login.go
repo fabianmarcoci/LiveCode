@@ -36,7 +36,7 @@ func LoginUserInternal(payload models.LoginRequest, db *sql.DB) (models.LoginRes
 
 	tokens, err := utils.GenerateTokenPair(user.ID, user.Username, user.Email)
 	if err != nil {
-		return models.LoginResponse{}, err
+		return models.LoginResponse{}, errors.New("token generation failed")
 	}
 
 	return models.LoginResponse{

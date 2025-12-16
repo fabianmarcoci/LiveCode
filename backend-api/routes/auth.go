@@ -1,24 +1,44 @@
 package routes
 
 import (
-	"database/sql"
 	"net/http"
-	"os"
-	"strconv"
-	"time"
 
 	"livecode-api/database"
 	"livecode-api/handlers"
+	"livecode-api/middleware"
 	"livecode-api/models"
-	"livecode-api/utils"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
+	"go.uber.org/zap"
 )
+
+func CheckFieldAvailable(c *gin.Context) {
+	field, _ := c.Get("validated_field")
+	value, _ := c.Get("validated_value")
+
+	available, err := handlers.CheckFieldAvailableInternal(field.(string), value.(string), database.DB)
+
+	if err != nil {
+		middleware.GetLogger(c).Error("check_field_database_error",
+			zap.String("field", field.(string)),
+			zap.Error(err),
+		)
+		c.JSON(http.StatusInternalServerError, gin.H{"available": nil})
+		return
+	}
+
+	middleware.GetLogger(c).Info("check_field_success",
+		zap.String("field", field.(string)),
+		zap.Bool("available", *available),
+	)
+
+	c.JSON(http.StatusOK, gin.H{"available": available})
+}
 
 func Register(c *gin.Context) {
 	validatedPayload, exists := c.Get("validated_payload")
 	if !exists {
+		middleware.GetLogger(c).Error("register_validation_missing")
 		c.JSON(http.StatusInternalServerError, models.RegisterResponse{
 			Success: false,
 			Message: "Validation error occurred.",
@@ -41,6 +61,11 @@ func Register(c *gin.Context) {
 	response, err := handlers.RegisterUserInternal(req, database.DB)
 
 	if err != nil {
+		middleware.GetLogger(c).Error("register_failed",
+			zap.String("error", err.Error()),
+			zap.String("email", req.Email),
+			zap.String("username", req.Username),
+		)
 		c.JSON(http.StatusInternalServerError, models.RegisterResponse{
 			Success: false,
 			Message: "An unexpected error occurred. Please try again.",
@@ -48,36 +73,28 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	statusCode := http.StatusCreated
 	if !response.Success {
-		statusCode = http.StatusOK
-	}
-
-	c.JSON(statusCode, response)
-}
-
-func CheckFieldAvailable(c *gin.Context) {
-	field := c.Query("field")
-	value := c.Query("value")
-
-	if field == "" || value == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"available": nil})
+		middleware.GetLogger(c).Warn("register_validation_failed",
+			zap.String("email", req.Email),
+			zap.String("username", req.Username),
+			zap.Int("field_errors_count", len(response.FieldErrors)),
+		)
+		c.JSON(http.StatusOK, response)
 		return
 	}
 
-	available, err := handlers.CheckFieldAvailableInternal(field, value, database.DB)
+	middleware.GetLogger(c).Info("register_success",
+		zap.String("user_id", response.User.ID),
+		zap.String("username", response.User.Username),
+	)
 
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"available": nil})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"available": available})
+	c.JSON(http.StatusCreated, response)
 }
 
 func Login(c *gin.Context) {
 	validatedPayload, exists := c.Get("validated_payload")
 	if !exists {
+		middleware.GetLogger(c).Error("login_validation_missing")
 		c.JSON(http.StatusInternalServerError, models.LoginResponse{
 			Success: false,
 			Message: "Validation error occurred.",
@@ -98,6 +115,10 @@ func Login(c *gin.Context) {
 	response, err := handlers.LoginUserInternal(req, database.DB)
 
 	if err != nil {
+		middleware.GetLogger(c).Error("login_failed",
+			zap.String("error", err.Error()),
+			zap.String("identifier", req.Identifier),
+		)
 		c.JSON(http.StatusInternalServerError, models.LoginResponse{
 			Success: false,
 			Message: "An unexpected error occurred. Please try again.",
@@ -105,86 +126,60 @@ func Login(c *gin.Context) {
 		return
 	}
 
+	if !response.Success {
+		middleware.GetLogger(c).Warn("login_invalid_credentials",
+			zap.String("identifier", req.Identifier),
+		)
+		c.JSON(http.StatusUnauthorized, response)
+		return
+	}
+
+	middleware.GetLogger(c).Info("login_success",
+		zap.String("user_id", response.User.ID),
+		zap.String("username", response.User.Username),
+	)
+
 	c.JSON(http.StatusOK, response)
 }
 
 func RefreshToken(c *gin.Context) {
-	var req struct {
-		RefreshToken string `json:"refresh_token" binding:"required"`
-	}
-
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "Refresh token is required.",
-		})
-		return
-	}
-
-	_, claims, err := utils.VerifyJWT(req.RefreshToken)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"success": false,
-			"message": "Invalid or expired refresh token.",
-		})
-		return
-	}
-
-	userID, ok := claims["user_id"].(string)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"success": false,
-			"message": "Invalid user ID in token.",
-		})
-		return
-	}
-
-	var user models.UserData
-	query := `SELECT id, username, email FROM users WHERE id = $1 LIMIT 1`
-	err = database.DB.QueryRow(query, userID).Scan(&user.ID, &user.Username, &user.Email)
-
-	if err != nil {
-		if err == sql.ErrNoRows {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"success": false,
-				"message": "User not found.",
-			})
-			return
-		}
+	validatedPayload, exists := c.Get("validated_payload")
+	if !exists {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"success": false,
-			"message": "Database error.",
+			"message": "Validation error occurred.",
 		})
 		return
 	}
 
-	accessTokenExpiry, _ := strconv.Atoi(os.Getenv("ACCESS_TOKEN_EXPIRY_MINUTES"))
-	if accessTokenExpiry == 0 {
-		accessTokenExpiry = 15
-	}
-
-	accessTokenClaims := jwt.MapClaims{
-		"user_id":  user.ID,
-		"username": user.Username,
-		"email":    user.Email,
-		"exp":      time.Now().Add(time.Duration(accessTokenExpiry) * time.Minute).Unix(),
-		"iat":      time.Now().Unix(),
-	}
-
-	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, accessTokenClaims)
-	accessTokenString, err := accessToken.SignedString([]byte(os.Getenv("JWT_SECRET")))
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": "Failed to generate access token.",
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"success":      true,
-		"access_token": accessTokenString,
-		"message":      "Access token refreshed successfully.",
+	payload := validatedPayload.(struct {
+		RefreshToken string `json:"refresh_token"`
 	})
+
+	response, err := handlers.RefreshTokenInternal(payload.RefreshToken, database.DB)
+
+	if err != nil {
+		middleware.GetLogger(c).Error("refresh_token_failed",
+			zap.String("error", err.Error()),
+		)
+
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "An unexpected error occurred. Please try again.",
+		})
+		return
+	}
+
+	if !response.Success {
+		middleware.GetLogger(c).Warn("refresh_token_invalid",
+			zap.String("message", response.Message),
+		)
+	}
+
+	statusCode := http.StatusOK
+	if !response.Success {
+		statusCode = http.StatusUnauthorized
+	}
+
+	c.JSON(statusCode, response)
 }

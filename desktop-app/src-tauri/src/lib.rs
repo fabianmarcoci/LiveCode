@@ -1,6 +1,9 @@
-pub mod window;
 pub mod config;
-pub mod storage;
+pub mod errors;
+pub mod window;
 
-pub use window::adjust_window_size;
+#[path = "lib/models.rs"]
+pub mod models;
+
 pub use config::ApiConfig;
+pub use window::adjust_window_size;
