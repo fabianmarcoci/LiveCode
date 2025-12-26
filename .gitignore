@@ -160,4 +160,5 @@ docker-compose.override.yml
 # Claude
 # ============================================
 .claude/
+**/.claude/
 *.claude
