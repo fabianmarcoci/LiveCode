@@ -1,6 +1,8 @@
 module livecode-api
 
-go 1.25.4
+go 1.24.0
+
+toolchain go1.24.11
 
 require (
 	github.com/gin-gonic/gin v1.11.0
@@ -8,12 +10,14 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.6
 	github.com/joho/godotenv v1.5.1
+	go.uber.org/zap v1.27.1
 	golang.org/x/crypto v0.45.0
 )
 
 require (
+	github.com/golang-migrate/migrate/v4 v4.19.1 // indirect
+	github.com/lib/pq v1.10.9 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	go.uber.org/zap v1.27.1 // indirect
 )
 
 require (

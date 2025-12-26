@@ -20,5 +20,3 @@ vendor/
 # Go workspace file
 go.work
 
-# Air live reload (if using)
-tmp/

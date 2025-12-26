@@ -33,6 +33,10 @@ func main() {
 	}
 	defer database.Close()
 
+	if err := database.RunMigrations(cfg.DatabaseURL); err != nil {
+		log.Fatal("Database migrations failed:", err)
+	}
+
 	router := setupRouter()
 
 	runServer(router, cfg.Port)

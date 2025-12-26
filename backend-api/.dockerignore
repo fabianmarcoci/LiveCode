@@ -1,0 +1,9 @@
+# Git
+.gitignore
+
+# Environment files
+.env
+
+# Test files
+*_test.go
+
