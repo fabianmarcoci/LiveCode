@@ -13,13 +13,19 @@
       "name": "☁️ Backend API"
     },
     {
-      "path": "E:/LeetCode_Training"
+      "path": "nginx",
+      "name": "⚡ Nginx"
+    },
+    {
+      "path": "E:/LeetCode_Training",
+      "name": "🧠 LeetCode"
     }
   ],
   "settings": {
     "files.exclude": {
       "desktop-app": true,
       "backend-api": true,
+      "nginx": true,
       "**/node_modules": true,
       "**/target": true,
       "**/.git": true

@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 const IDENTIFIER_MAX_LENGTH = 255;
 const PASSWORD_MAX_LENGTH = 72;
@@ -19,6 +19,8 @@ export default function LoginForm({ onClose, onLoginSuccess }: LoginFormProps) {
   const [shakeField, setShakeField] = useState<string | null>(null);
   const [tempIdentifierMessage, setTempIdentifierMessage] = useState("");
   const [tempPasswordMessage, setTempPasswordMessage] = useState("");
+
+  const passwordRef = useRef<HTMLInputElement>(null);
 
   function triggerShake(field: string) {
     setShakeField(field);
@@ -96,9 +98,20 @@ export default function LoginForm({ onClose, onLoginSuccess }: LoginFormProps) {
     }
   }
 
-  function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "Enter" && !isSubmitting && identifier && password) {
-      handleSubmit();
+  function handleIdentifierKeyDown(e: React.KeyboardEvent) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      passwordRef.current?.focus();
+    }
+  }
+
+  function handlePasswordKeyDown(e: React.KeyboardEvent) {
+    if (e.key === "Enter") {
+      const isFormValid = !isSubmitting && identifier && password;
+
+      if (isFormValid) {
+        handleSubmit();
+      }
     }
   }
 
@@ -113,6 +126,7 @@ export default function LoginForm({ onClose, onLoginSuccess }: LoginFormProps) {
             shakeField === "identifier" ? "input-shake input-error" : ""
           }`}
           value={identifier}
+          onKeyDown={handleIdentifierKeyDown}
           onChange={(e) => {
             const value = e.target.value;
 
@@ -127,7 +141,6 @@ export default function LoginForm({ onClose, onLoginSuccess }: LoginFormProps) {
               setErrorMessage("");
             }
           }}
-          onKeyDown={handleKeyDown}
           placeholder="you@example.com or @username"
         />
       </label>
@@ -136,12 +149,14 @@ export default function LoginForm({ onClose, onLoginSuccess }: LoginFormProps) {
         Password
         <div className="input-with-icon">
           <input
+            ref={passwordRef}
             disabled={isSubmitting}
             type={showPassword ? "text" : "password"}
             className={`input-field ${
               shakeField === "password" ? "input-shake input-error" : ""
             }`}
             value={password}
+            onKeyDown={handlePasswordKeyDown}
             onChange={(e) => {
               const value = e.target.value;
 
@@ -156,7 +171,6 @@ export default function LoginForm({ onClose, onLoginSuccess }: LoginFormProps) {
                 setErrorMessage("");
               }
             }}
-            onKeyDown={handleKeyDown}
             placeholder="********"
           />
 

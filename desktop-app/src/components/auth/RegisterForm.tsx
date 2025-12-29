@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useEffect } from "react";
 import { useDebounce } from "../../hooks/useDebounce";
 import {
@@ -46,6 +46,11 @@ export default function RegisterForm({
   });
   const debouncedEmail = useDebounce(email, 500);
   const debouncedUsername = useDebounce(username, 500);
+
+  const emailRef = useRef<HTMLInputElement>(null);
+  const usernameRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const confirmPasswordRef = useRef<HTMLInputElement>(null);
   function validateRegisterForm() {
     const emailError = validateEmailValue(email);
     const usernameError = validateUsernameValue(username);
@@ -165,6 +170,46 @@ export default function RegisterForm({
     }, 250);
   }
 
+  function handleEmailKeyDown(e: React.KeyboardEvent) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      usernameRef.current?.focus();
+    }
+  }
+
+  function handleUsernameKeyDown(e: React.KeyboardEvent) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      passwordRef.current?.focus();
+    }
+  }
+
+  function handlePasswordKeyDown(e: React.KeyboardEvent) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      confirmPasswordRef.current?.focus();
+    }
+  }
+
+  function handleConfirmPasswordKeyDown(e: React.KeyboardEvent) {
+    if (e.key === "Enter") {
+      const isFormValid =
+        !isSubmitting &&
+        !errors.email &&
+        !errors.username &&
+        !errors.password &&
+        !errors.confirmPassword &&
+        email &&
+        username &&
+        password &&
+        confirmPassword;
+
+      if (isFormValid) {
+        handleSubmit();
+      }
+    }
+  }
+
   useEffect(() => {
     if (!debouncedEmail || validateEmailValue(debouncedEmail)) {
       return;
@@ -218,12 +263,14 @@ export default function RegisterForm({
       <label className="input-label">
         Email
         <input
+          ref={emailRef}
           disabled={isSubmitting}
           type="email"
           className={`input-field ${
             shakeField === "email" ? "input-shake input-error" : ""
           }`}
           value={email}
+          onKeyDown={handleEmailKeyDown}
           onChange={(e) => {
             const value = e.target.value;
 
@@ -265,12 +312,14 @@ export default function RegisterForm({
       <label className="input-label">
         Username
         <input
+          ref={usernameRef}
           disabled={isSubmitting}
           type="text"
           className={`input-field ${
             shakeField === "username" ? "input-shake input-error" : ""
           }`}
           value={username}
+          onKeyDown={handleUsernameKeyDown}
           onChange={(e) => {
             let value = e.target.value.toLowerCase();
 
@@ -320,12 +369,14 @@ export default function RegisterForm({
         Password
         <div className="input-with-icon">
           <input
+            ref={passwordRef}
             disabled={isSubmitting}
             type={showPassword ? "text" : "password"}
             className={`input-field ${
               shakeField === "password" ? "input-shake input-error" : ""
             }`}
             value={password}
+            onKeyDown={handlePasswordKeyDown}
             onChange={(e) => {
               const value = e.target.value;
 
@@ -392,12 +443,14 @@ export default function RegisterForm({
       <label className="input-label">
         Confirm Password
         <input
+          ref={confirmPasswordRef}
           disabled={isSubmitting}
           type="password"
           className={`input-field ${
             shakeField === "confirm" ? "input-shake input-error" : ""
           }`}
           value={confirmPassword}
+          onKeyDown={handleConfirmPasswordKeyDown}
           onChange={(e) => {
             const value = e.target.value;
 

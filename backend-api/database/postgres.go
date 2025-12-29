@@ -3,10 +3,11 @@ package database
 import (
 	"database/sql"
 	"fmt"
-	"log"
+	"livecode-api/middleware"
 	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"go.uber.org/zap"
 )
 
 var DB *sql.DB
@@ -27,7 +28,10 @@ func Connect(databaseURL string) error {
 		return fmt.Errorf("failed to ping database: %w", err)
 	}
 
-	log.Println("Connected to PostgreSQL")
+	middleware.Logger.Info("connected to PostgreSQL",
+		zap.String("host", "postgres"),
+		zap.Int("max_conns", 25),
+	)
 	return nil
 }
 

@@ -2,6 +2,7 @@ package utils
 
 import (
 	"errors"
+	"livecode-api/config"
 	"os"
 	"strconv"
 	"time"
@@ -10,8 +11,7 @@ import (
 )
 
 func VerifyJWT(tokenString string) (*jwt.Token, jwt.MapClaims, error) {
-	jwtSecret := os.Getenv("JWT_SECRET")
-	if jwtSecret == "" {
+	if config.JWTSecret == "" {
 		return nil, nil, errors.New("JWT_SECRET not configured")
 	}
 
@@ -19,7 +19,7 @@ func VerifyJWT(tokenString string) (*jwt.Token, jwt.MapClaims, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, jwt.ErrSignatureInvalid
 		}
-		return []byte(jwtSecret), nil
+		return []byte(config.JWTSecret), nil
 	})
 
 	if err != nil {
@@ -44,8 +44,7 @@ type TokenPair struct {
 }
 
 func GenerateTokenPair(userID string, username string, email string) (*TokenPair, error) {
-	jwtSecret := os.Getenv("JWT_SECRET")
-	if jwtSecret == "" {
+	if config.JWTSecret == "" {
 		return nil, errors.New("JWT_SECRET not configured")
 	}
 
@@ -63,7 +62,7 @@ func GenerateTokenPair(userID string, username string, email string) (*TokenPair
 	}
 
 	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, accessTokenClaims)
-	accessTokenString, err := accessToken.SignedString([]byte(jwtSecret))
+	accessTokenString, err := accessToken.SignedString([]byte(config.JWTSecret))
 
 	if err != nil {
 		return nil, errors.New("failed to generate access token")
@@ -81,7 +80,7 @@ func GenerateTokenPair(userID string, username string, email string) (*TokenPair
 	}
 
 	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshTokenClaims)
-	refreshTokenString, err := refreshToken.SignedString([]byte(jwtSecret))
+	refreshTokenString, err := refreshToken.SignedString([]byte(config.JWTSecret))
 
 	if err != nil {
 		return nil, errors.New("failed to generate refresh token")

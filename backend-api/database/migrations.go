@@ -50,3 +50,12 @@ func RunMigrations(databaseURL string) error {
 	middleware.Logger.Info("database migrations completed successfully")
 	return nil
 }
+
+func CheckMigrationsApplied() error {
+	var version int
+	err := DB.QueryRow("SELECT version FROM schema_migrations WHERE dirty = false LIMIT 1").Scan(&version)
+	if err != nil {
+		return fmt.Errorf("no migrations applied: %w", err)
+	}
+	return nil
+}

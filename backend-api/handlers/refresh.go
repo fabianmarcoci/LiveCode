@@ -3,6 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"errors"
+	"livecode-api/config"
 	"os"
 	"strconv"
 	"time"
@@ -59,7 +60,7 @@ func RefreshTokenInternal(refreshToken string, db *sql.DB) (models.RefreshTokenR
 	}
 
 	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, accessTokenClaims)
-	accessTokenString, err := accessToken.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	accessTokenString, err := accessToken.SignedString([]byte(config.JWTSecret))
 
 	if err != nil {
 		return models.RefreshTokenResponse{}, errors.New("failed to generate access token")

@@ -1,45 +1,79 @@
 version: '3.8'
 
 services:
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: livecode-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - livecode-network
+    restart: unless-stopped
+
   postgres:
     image: postgres:16-alpine
     container_name: livecode-postgres
     environment:
-      POSTGRES_DB: livecode
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets:
+      - postgres_password
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d livecode"]
-      interval: 10s
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d livecode" ]
+      interval: 15s
       timeout: 5s
       retries: 5
     networks:
       - livecode-network
+
   backend:
     build:
       context: ./backend-api
       dockerfile: Dockerfile
     container_name: livecode-backend
-    ports:
-      - "3000:3000"
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:3000/health" ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
     environment:
-      DATABASE_URL: "postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/livecode"
-      PORT: "3000"
-      GIN_MODE: release
-      JWT_SECRET: ${JWT_SECRET}
-      JWT_ACCESS_TOKEN_EXPIRY: "15"
-      JWT_REFRESH_TOKEN_EXPIRY: "43200"
-      ALLOWED_ORIGINS: http://localhost:1420,tauri://localhost
+      DOCKER_ENV: "true"
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      PORT: ${PORT}
+      GIN_MODE: ${GIN_MODE}
+      JWT_SECRET_FILE: /run/secrets/jwt_secret
+      JWT_ACCESS_TOKEN_EXPIRY: ${JWT_ACCESS_TOKEN_EXPIRY}
+      JWT_REFRESH_TOKEN_EXPIRY: ${JWT_REFRESH_TOKEN_EXPIRY}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+    secrets:
+      - postgres_password
+      - jwt_secret
     depends_on:
       postgres:
         condition: service_healthy
     networks:
       - livecode-network
     restart: unless-stopped
+
+secrets:
+  postgres_password:
+    file: ./.secrets/postgres_password.txt
+  jwt_secret:
+    file: ./.secrets/jwt_secret.txt
 
 volumes:
   postgres_data:

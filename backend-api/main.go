@@ -2,39 +2,69 @@ package main
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
+	"livecode-api/config"
 	"livecode-api/database"
 	"livecode-api/middleware"
 	"livecode-api/routes"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"go.uber.org/zap"
 )
 
 type Config struct {
 	DatabaseURL string
 	Port        string
 	GinMode     string
+	JWTSecret   string
+}
+
+func getEnvOrSecret(envKey, secretPath string) string {
+	value := os.Getenv(envKey)
+	if value != "" {
+		return value
+	}
+
+	secretFile := os.Getenv(envKey + "_FILE")
+	if secretFile != "" {
+		data, err := os.ReadFile(secretFile)
+		if err != nil {
+			middleware.Logger.Warn("failed to read secret file",
+				zap.String("file", secretFile),
+				zap.Error(err),
+			)
+			return ""
+		}
+		return strings.TrimSpace(string(data))
+	}
+
+	return ""
 }
 
 func main() {
-	cfg := loadConfig()
-
 	middleware.InitLogger()
 
+	cfg := loadConfig()
+	config.Init(cfg.JWTSecret)
+
 	if err := database.Connect(cfg.DatabaseURL); err != nil {
-		log.Fatal("Database connection failed:", err)
+		middleware.Logger.Fatal("database connection failed",
+			zap.Error(err),
+		)
 	}
 	defer database.Close()
 
 	if err := database.RunMigrations(cfg.DatabaseURL); err != nil {
-		log.Fatal("Database migrations failed:", err)
+		middleware.Logger.Fatal("database migrations failed",
+			zap.Error(err),
+		)
 	}
 
 	router := setupRouter()
@@ -43,16 +73,30 @@ func main() {
 }
 
 func loadConfig() *Config {
-	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found, using environment variables")
+	if os.Getenv("DOCKER_ENV") != "true" {
+		_ = godotenv.Load("../.env.local")
+		_ = godotenv.Load("../.env")
 	}
 
 	databaseURL := os.Getenv("DATABASE_URL")
 	port := os.Getenv("PORT")
 	ginMode := os.Getenv("GIN_MODE")
+	jwtSecret := getEnvOrSecret("JWT_SECRET", "/run/secrets/jwt_secret")
 
-	if databaseURL == "" {
-		log.Fatal("DATABASE_URL is required")
+	if os.Getenv("DOCKER_ENV") == "true" && databaseURL == "" {
+		pgUser := os.Getenv("POSTGRES_USER")
+		pgDB := os.Getenv("POSTGRES_DB")
+		pgPassword := getEnvOrSecret("POSTGRES_PASSWORD", "/run/secrets/postgres_password")
+
+		if pgUser == "" || pgDB == "" || pgPassword == "" {
+			middleware.Logger.Fatal("POSTGRES_USER, POSTGRES_DB, POSTGRES_PASSWORD required for Docker")
+		}
+
+		databaseURL = "postgresql://" + pgUser + ":" + pgPassword + "@postgres:5432/" + pgDB + "?sslmode=disable"
+	}
+
+	if jwtSecret == "" {
+		middleware.Logger.Fatal("JWT_SECRET is required")
 	}
 	if port == "" {
 		port = "3000"
@@ -61,10 +105,22 @@ func loadConfig() *Config {
 		gin.SetMode(ginMode)
 	}
 
+	if databaseURL == "" {
+		middleware.Logger.Fatal("DATABASE_URL is required")
+	}
+
+	middleware.Logger.Info("configuration loaded",
+		zap.String("port", port),
+		zap.String("gin_mode", ginMode),
+		zap.Bool("jwt_from_secret_file", os.Getenv("JWT_SECRET_FILE") != ""),
+		zap.Bool("database_from_secrets", os.Getenv("DOCKER_ENV") == "true"),
+	)
+
 	return &Config{
 		DatabaseURL: databaseURL,
 		Port:        port,
 		GinMode:     ginMode,
+		JWTSecret:   jwtSecret,
 	}
 }
 
@@ -116,9 +172,20 @@ func healthCheck(c *gin.Context) {
 		return
 	}
 
+	if err := database.CheckMigrationsApplied(); err != nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{
+			"status":     "error",
+			"database":   "connected",
+			"migrations": "not_applied",
+			"error":      err.Error(),
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"status":   "ok",
-		"database": "connected",
+		"status":     "ok",
+		"database":   "connected",
+		"migrations": "applied",
 	})
 }
 
@@ -132,9 +199,14 @@ func runServer(router *gin.Engine, port string) {
 	}
 
 	go func() {
-		log.Printf("Server starting on http://localhost:%s", port)
+		middleware.Logger.Info("server starting",
+			zap.String("address", "http://localhost:"+port),
+			zap.String("port", port),
+		)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatal("Server failed to start:", err)
+			middleware.Logger.Fatal("server failed to start",
+				zap.Error(err),
+			)
 		}
 	}()
 
@@ -142,14 +214,16 @@ func runServer(router *gin.Engine, port string) {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
-	log.Println("Shutting down server...")
+	middleware.Logger.Info("shutting down server gracefully")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatal("Server forced to shutdown:", err)
+		middleware.Logger.Fatal("server forced to shutdown",
+			zap.Error(err),
+		)
 	}
 
-	log.Println("Server exited gracefully")
+	middleware.Logger.Info("server exited gracefully")
 }

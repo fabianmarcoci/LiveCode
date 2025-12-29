@@ -5,11 +5,11 @@
 # ============================================
 # Environment Variables
 # ============================================
-.env
-.env.local
+.env.local 
 .env.*.local
 .env.production
 .env.development
+
 
 # ============================================
 # IDEs and Editors
@@ -120,7 +120,7 @@ backend-api/bin/
 backend-api/dist/
 backend-api/build/
 
-# Go vendor (opțional - dacă folosești)
+# Go vendor
 backend-api/vendor/
 
 # Go workspace
@@ -128,9 +128,8 @@ backend-api/go.work
 backend-api/go.work.sum
 
 # ============================================
-# Documentation (optional - dacă vrei să păstrezi local)
+# Documentation
 # ============================================
-# Uncomment if you don't want to commit PDFs/LaTeX outputs
 # .documentation_resources/
 
 # ============================================
@@ -149,6 +148,7 @@ coverage/
 *.crt
 *.p12
 secrets/
+.secrets/
 
 
 # ============================================
