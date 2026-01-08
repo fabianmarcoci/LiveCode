@@ -54,7 +54,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
       PORT: ${PORT}
-      GIN_MODE: ${GIN_MODE}
+      GIN_MODE_FILE: /run/secrets/gin_mode
       JWT_SECRET_FILE: /run/secrets/jwt_secret
       JWT_ACCESS_TOKEN_EXPIRY: ${JWT_ACCESS_TOKEN_EXPIRY}
       JWT_REFRESH_TOKEN_EXPIRY: ${JWT_REFRESH_TOKEN_EXPIRY}
@@ -62,6 +62,7 @@ services:
     secrets:
       - postgres_password
       - jwt_secret
+      - gin_mode
     depends_on:
       postgres:
         condition: service_healthy
@@ -74,6 +75,8 @@ secrets:
     file: ./.secrets/postgres_password.txt
   jwt_secret:
     file: ./.secrets/jwt_secret.txt
+  gin_mode:
+    file: ./.secrets/gin_mode.txt
 
 volumes:
   postgres_data:
