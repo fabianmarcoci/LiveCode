@@ -5,7 +5,7 @@ pub struct ApiConfig {
 impl ApiConfig {
     pub fn new() -> Self {
         let base_url =
-            std::env::var("API_BASE_URL").unwrap_or_else(|_| "http://localhost:80".to_string());
+            std::env::var("API_BASE_URL").unwrap_or_else(|_| "https://localhost".to_string());
 
         Self { base_url }
     }
