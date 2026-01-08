@@ -80,7 +80,7 @@ func loadConfig() *Config {
 
 	databaseURL := os.Getenv("DATABASE_URL")
 	port := os.Getenv("PORT")
-	ginMode := os.Getenv("GIN_MODE")
+	ginMode := getEnvOrSecret("GIN_MODE", "/run/secrets/gin_mode")
 	jwtSecret := getEnvOrSecret("JWT_SECRET", "/run/secrets/jwt_secret")
 
 	if os.Getenv("DOCKER_ENV") == "true" && databaseURL == "" {
