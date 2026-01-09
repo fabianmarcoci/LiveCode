@@ -4,8 +4,8 @@ pub struct ApiConfig {
 
 impl ApiConfig {
     pub fn new() -> Self {
-        let base_url =
-            std::env::var("API_BASE_URL").unwrap_or_else(|_| "https://localhost".to_string());
+        let base_url = std::env::var("API_BASE_URL")
+            .unwrap_or_else(|_| "https://livecode.duckdns.org".to_string());
 
         Self { base_url }
     }
