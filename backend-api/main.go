@@ -16,6 +16,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
 )
 
@@ -127,6 +128,7 @@ func loadConfig() *Config {
 func setupRouter() *gin.Engine {
 	router := gin.Default()
 
+	router.Use(middleware.PrometheusMiddleware())
 	router.Use(middleware.RequestLogger())
 
 	refreshTokenLimiter := middleware.NewRateLimiter(3, 3)
@@ -134,6 +136,7 @@ func setupRouter() *gin.Engine {
 	checkFieldLimiter := middleware.NewRateLimiter(10, 10)
 	clientMonitoringLimiter := middleware.NewRateLimiter(2, 2)
 
+	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 	router.GET("/health", healthCheck)
 
 	v1 := router.Group("/api/v1")
