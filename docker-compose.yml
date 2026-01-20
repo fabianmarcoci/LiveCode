@@ -127,6 +127,8 @@ services:
       - grafana-data:/var/lib/grafana
       - ./monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
       - ./secrets/grafana_admin_password:/run/secrets/grafana_admin_password:ro
+    secrets:
+      - grafana_admin_password
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD__FILE: /run/secrets/grafana_admin_password
@@ -171,6 +173,8 @@ secrets:
     file: ./.secrets/jwt_secret.txt
   gin_mode:
     file: ./.secrets/gin_mode.txt
+  grafana_admin_password:
+    file: ./.secrets/grafana_admin_password.txt
 
 volumes:
   postgres_data:
