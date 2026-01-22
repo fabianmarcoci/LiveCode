@@ -29,6 +29,7 @@ scrape_configs:
             timestamp: ts
       - labels:
           level:
+          container:
       - timestamp:
           source: timestamp
           format: RFC3339Nano
@@ -51,6 +52,7 @@ scrape_configs:
       - labels:
           status:
           method:
+          container:
       - timestamp:
           source: time_local
           format: "02/Jan/2006:15:04:05 -0700"
@@ -72,6 +74,7 @@ scrape_configs:
           expression: '^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} \w+) \[(?P<pid>\d+)\] (?P<level>\w+):  (?P<message>.*)'
       - labels:
           level:
+          container:
       - timestamp:
           source: timestamp
           format: "2006-01-02 15:04:05.000 MST"
