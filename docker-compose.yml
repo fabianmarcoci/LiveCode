@@ -16,8 +16,8 @@ services:
     depends_on:
       backend:
         condition: service_healthy
-      grafana:
-        condition: service_healthy
+      # grafana:
+      #   condition: service_healthy
     healthcheck:
       test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost/health || exit 1" ]
       interval: 30s
@@ -80,140 +80,139 @@ services:
     networks:
       - livecode-network
     restart: unless-stopped
+  # prometheus:
+  #   image: prom/prometheus:latest
+  #   container_name: livecode-prometheus
+  #   command:
+  #     - '--config.file=/etc/prometheus/prometheus.yml'
 
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: livecode-prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
+  #     - '--storage.tsdb.path=/prometheus'
 
-      - '--storage.tsdb.path=/prometheus'
+  #     - '--storage.tsdb.retention.time=2d'
 
-      - '--storage.tsdb.retention.time=2d'
+  #     - '--web.listen-address=:9090'
 
-      - '--web.listen-address=:9090'
+  #     - '--web.enable-lifecycle'
 
-      - '--web.enable-lifecycle'
+  #     - '--web.console.templates=/etc/prometheus/consoles'
+  #     - '--web.console.libraries=/etc/prometheus/console_libraries'
+  #   volumes:
+  #     - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+  #     - prometheus-data:/prometheus
+  #   networks:
+  #     - livecode-network
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test: [ "CMD", "wget", "--spider", "-q", "http://localhost:9090/-/healthy" ]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 40s
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         memory: 256M
+  #       reservations:
+  #         memory: 128M
+  #   depends_on:
+  #     backend:
+  #       condition: service_healthy
 
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-    volumes:
-      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - prometheus-data:/prometheus
-    networks:
-      - livecode-network
-    restart: unless-stopped
-    healthcheck:
-      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:9090/-/healthy" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-        reservations:
-          memory: 128M
-    depends_on:
-      backend:
-        condition: service_healthy
+  # grafana:
+  #   image: grafana/grafana:latest
+  #   container_name: livecode-grafana
+  #   user: "472"
+  #   volumes:
+  #     - grafana-data:/var/lib/grafana
+  #     - ./monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+  #   secrets:
+  #     - grafana_admin_password
+  #   environment:
+  #     GF_SECURITY_ADMIN_USER: admin
+  #     GF_SECURITY_ADMIN_PASSWORD__FILE: /run/secrets/grafana_admin_password
 
-  grafana:
-    image: grafana/grafana:latest
-    container_name: livecode-grafana
-    user: "472"
-    volumes:
-      - grafana-data:/var/lib/grafana
-      - ./monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
-    secrets:
-      - grafana_admin_password
-    environment:
-      GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD__FILE: /run/secrets/grafana_admin_password
+  #     GF_SERVER_ROOT_URL: https://livecode.duckdns.org/grafana/
+  #     GF_SERVER_SERVE_FROM_SUB_PATH: true
 
-      GF_SERVER_ROOT_URL: https://livecode.duckdns.org/grafana/
-      GF_SERVER_SERVE_FROM_SUB_PATH: true
+  #     GF_ANALYTICS_REPORTING_ENABLED: false
+  #     GF_ANALYTICS_CHECK_FOR_UPDATES: false
 
-      GF_ANALYTICS_REPORTING_ENABLED: false
-      GF_ANALYTICS_CHECK_FOR_UPDATES: false
+  #     GF_LOG_MODE: console
+  #     GF_LOG_LEVEL: info
 
-      GF_LOG_MODE: console
-      GF_LOG_LEVEL: info
+  #     GF_SECURITY_DISABLE_GRAVATAR: true
+  #     GF_SECURITY_COOKIE_SECURE: true
+  #     GF_SECURITY_COOKIE_SAMESITE: lax
 
-      GF_SECURITY_DISABLE_GRAVATAR: true
-      GF_SECURITY_COOKIE_SECURE: true
-      GF_SECURITY_COOKIE_SAMESITE: lax
+  #     GF_AUTH_ANONYMOUS_ENABLED: false
+  #   networks:
+  #     - livecode-network
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1" ]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 40s
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         memory: 128M
+  #       reservations:
+  #         memory: 64M
+  #   depends_on:
+  #     prometheus:
+  #       condition: service_healthy
 
-      GF_AUTH_ANONYMOUS_ENABLED: false
-    networks:
-      - livecode-network
-    restart: unless-stopped
-    healthcheck:
-      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-    deploy:
-      resources:
-        limits:
-          memory: 128M
-        reservations:
-          memory: 64M
-    depends_on:
-      prometheus:
-        condition: service_healthy
+  # loki:
+  #   image: grafana/loki:3.0.0
+  #   container_name: livecode-loki
+  #   command: -config.file=/etc/loki/loki.yml
+  #   volumes:
+  #     - ./monitoring/loki/loki.yml:/etc/loki/loki.yml:ro
+  #     - loki-data:/loki
+  #   networks:
+  #     - livecode-network
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test: [ "CMD-SHELL", "wget --spider -q http://localhost:3100/ready || exit 1" ]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 30s
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         memory: 256M
+  #       reservations:
+  #         memory: 128M
 
-  loki:
-    image: grafana/loki:3.0.0
-    container_name: livecode-loki
-    command: -config.file=/etc/loki/loki.yml
-    volumes:
-      - ./monitoring/loki/loki.yml:/etc/loki/loki.yml:ro
-      - loki-data:/loki
-    networks:
-      - livecode-network
-    restart: unless-stopped
-    healthcheck:
-      test: [ "CMD-SHELL", "wget --spider -q http://localhost:3100/ready || exit 1" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-        reservations:
-          memory: 128M
-
-  promtail:
-    image: grafana/promtail:3.0.0
-    container_name: livecode-promtail
-    command: -config.file=/etc/promtail/promtail.yml
-    volumes:
-      - ./monitoring/promtail/promtail.yml:/etc/promtail/promtail.yml:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-    networks:
-      - livecode-network
-    restart: unless-stopped
-    depends_on:
-      loki:
-        condition: service_healthy
-    healthcheck:
-      test: [ "CMD-SHELL", "timeout 1 bash -c '</dev/tcp/127.0.0.1/9080' || exit 1" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 15s
-    deploy:
-      resources:
-        limits:
-          memory: 64M
-        reservations:
-          memory: 32M
+  # promtail:
+  #   image: grafana/promtail:3.0.0
+  #   container_name: livecode-promtail
+  #   command: -config.file=/etc/promtail/promtail.yml
+  #   volumes:
+  #     - ./monitoring/promtail/promtail.yml:/etc/promtail/promtail.yml:ro
+  #     - /var/run/docker.sock:/var/run/docker.sock:ro
+  #     - /var/lib/docker/containers:/var/lib/docker/containers:ro
+  #   networks:
+  #     - livecode-network
+  #   restart: unless-stopped
+  #   depends_on:
+  #     loki:
+  #       condition: service_healthy
+  #   healthcheck:
+  #     test: [ "CMD-SHELL", "timeout 1 bash -c '</dev/tcp/127.0.0.1/9080' || exit 1" ]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 15s
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         memory: 64M
+  #       reservations:
+  #         memory: 32M
 
 secrets:
   postgres_password:
@@ -222,15 +221,14 @@ secrets:
     file: ./.secrets/jwt_secret.txt
   gin_mode:
     file: ./.secrets/gin_mode.txt
-  grafana_admin_password:
-    file: ./.secrets/grafana_admin_password.txt
+  # grafana_admin_password:
+  #   file: ./.secrets/grafana_admin_password.txt
 
 volumes:
   postgres_data:
-  prometheus-data:
-  grafana-data:
-  loki-data:
-    driver: local
+    # prometheus-data:
+    # grafana-data:
+    # loki-data:
 
 networks:
   livecode-network:
